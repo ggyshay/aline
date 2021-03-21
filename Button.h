@@ -1,3 +1,5 @@
+#include <stdlib.h>
+#include <functional>
 #define debounceDelay 200
 class Button
 {
@@ -7,6 +9,7 @@ public:
     void setReading(bool);
     Button(bool *_value, bool _isReleaseSensitive);
     void setPointer(bool *ptr);
+    std::function<void(void)> onToggle = nullptr;
 
 private:
     bool buttonState = false;
@@ -25,19 +28,25 @@ void Button::setReading(bool reading)
     {
         // buttonState = reading;
 
-        // if (isReleaseSensitive)
-        // {
-        buttonState = reading;
-        *value = buttonState;
-        lastDebounceTime = millis();
-        // }
-        // else
-        // // {
-        //     if (buttonState == HIGH)
-        //     {
-        //         *value = !*value;
-        //     }
-        // }
+        if (isReleaseSensitive)
+        {
+            *value = reading;
+            buttonState = reading;
+            lastDebounceTime = millis();
+        }
+        else
+        {
+            if (reading == HIGH)
+            {
+                *value = !*value;
+                if (onToggle != nullptr)
+                {
+                    onToggle();
+                }
+            }
+            buttonState = reading;
+            lastDebounceTime = millis();
+        }
     }
 }
 

@@ -8,6 +8,14 @@ public:
     char pitch = 36;
     char duration = 80;
     char velocity = 100;
+    bool gate = true;
+    void reset()
+    {
+        pitch = 36;
+        duration = 80;
+        velocity = 100;
+        gate = true;
+    }
     void pitchUp()
     {
         pitch++;

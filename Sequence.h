@@ -106,6 +106,33 @@ public:
         }
     }
 
+    void eraseSequence()
+    {
+        for (char i = 0; i < 16; i++)
+        {
+            notes[i].reset();
+            sequenceLength = 16;
+        }
+    }
+
+    void changeGates(bool *newGates)
+    {
+        for (char i = 0; i < 16; i++)
+        {
+            notes[i].gate = newGates[i];
+        }
+    }
+
+    void easeSelection()
+    {
+        char vp = notes[selectionStart].velocity;
+        char vq = notes[selectionEnd].velocity;
+        for (char i = selectionStart; i <= selectionEnd; i++)
+        {
+            notes[i].velocity = (vp - vq) / (selectionStart - selectionEnd) * (i - selectionStart) + vp;
+        }
+    }
+
     String toString()
     {
         String res;

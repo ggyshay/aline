@@ -78,6 +78,16 @@ void setup()
     sequence.setSequenceLengthDown();
     Serial.printf("echo inteface sequence length %d\n", *interface.sequenceLength);
   };
+  interface.onErase = []() -> void {
+    sequence.eraseSequence();
+    Serial.println("erase issued");
+  };
+  interface.onGateChange = [](bool *gates) -> void {
+    sequence.changeGates(gates);
+  };
+  interface.onEase = []() -> void {
+    sequence.easeSelection();
+  };
   interface.stepPosition = &scheduler.currentNote;
   interface.sequenceLength = &sequence.sequenceLength;
   interface.notes = sequence.notes;

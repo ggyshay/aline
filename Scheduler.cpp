@@ -12,7 +12,10 @@ void Scheduler::sendNextNote()
 {
     int length = *sequenceLength;
     currentNote = (currentNote + 1) % length;
-    usbMIDI.sendNoteOn(notes[currentNote].pitch, notes[currentNote].velocity, 0);
+    if (notes[currentNote].gate)
+    {
+        usbMIDI.sendNoteOn(notes[currentNote].pitch, notes[currentNote].velocity, 0);
+    }
     lastSentNote = notes[currentNote];
 }
 
@@ -43,7 +46,10 @@ void Scheduler::onClock()
 void Scheduler::sendNoteOff()
 {
     txTimer.end();
-    usbMIDI.sendNoteOff(lastSentNote.pitch, lastSentNote.velocity, 0);
+    if (lastSentNote.gate)
+    {
+        usbMIDI.sendNoteOff(lastSentNote.pitch, lastSentNote.velocity, 0);
+    }
 }
 
 static void handleNoteTimeout()
