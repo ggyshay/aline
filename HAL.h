@@ -32,6 +32,13 @@ namespace std
         while (1)
             ;
     }
+    template class basic_string<char>;
+    void __throw_logic_error(char const *err)
+    {
+        Serial.println(err);
+        while (true)
+            ;
+    }
 } // namespace std
 
 void setupPins()

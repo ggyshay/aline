@@ -1,3 +1,5 @@
+#include <stdlib.h>
+#include <string>
 #include "Sequence.h"
 #include "Interface.h"
 #include "Scheduler.h"
@@ -5,6 +7,7 @@
 Interface interface;
 Sequence sequence;
 Scheduler scheduler;
+
 int clockCount = 0;
 void handleClock()
 {
@@ -19,7 +22,7 @@ void handleStart()
 }
 void setup()
 {
-  Serial.begin(12500);
+  Serial.begin(112500);
   while (!Serial)
     ;
   Serial.println("Serial Started");
@@ -82,8 +85,8 @@ void setup()
     sequence.eraseSequence();
     Serial.println("erase issued");
   };
-  interface.onGateChange = [](bool *gates) -> void {
-    sequence.changeGates(gates);
+  interface.onGateChange = [](bool *gates, char currentPage) -> void {
+    sequence.changeGates(gates, currentPage);
   };
   interface.onEase = []() -> void {
     sequence.easeSelection();
@@ -102,8 +105,6 @@ void setup()
   usbMIDI.setHandleStart(handleStart);
   interface.renderSplash();
 }
-float meanLoopTime = 0.0f;
-int loops = 1;
 void loop()
 {
   // unsigned long startTime = micros();

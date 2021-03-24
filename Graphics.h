@@ -8,10 +8,10 @@ private:
     int cursor = 0;
     void blackLine();
     void writeLine(const char *s);
-    void plotGraph(const char *data, char dataLength, bool isThin);
+    void plotGraph(unsigned const char *data, char dataLength, bool isThin);
 
 public:
     void init();
     void buildTwoStringScreen(const char *str1, const char *str2);
-    void titlePlot(const char *, char *, char, bool);
+    void titlePlot(const char *, unsigned char *, char, bool);
 };

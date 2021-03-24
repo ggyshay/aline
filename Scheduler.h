@@ -14,7 +14,7 @@ public:
     int currentNote = 0;
     Note lastSentNote;
     Note *notes;
-    char *sequenceLength;
+    unsigned char *sequenceLength;
     void sendNextNote();
     void sendNoteOff();
     void init();

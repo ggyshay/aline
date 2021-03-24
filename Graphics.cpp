@@ -58,10 +58,12 @@ void Graphics::writeLine(const char *s)
     }
 }
 
-void Graphics::plotGraph(const char *data, char dataLength, bool isThin)
+void Graphics::plotGraph(unsigned const char *data, char dataLength, bool isThin)
 {
     int min = 1000;
     int max = -1;
+    int xScale = 16 * (1 + (dataLength - 1) / 16);
+    int xDivisor = 128 / xScale;
     for (int i = 0; i < dataLength; ++i)
     {
         min = data[i] < min ? data[i] : min;
@@ -70,39 +72,33 @@ void Graphics::plotGraph(const char *data, char dataLength, bool isThin)
     unsigned long int scaled[64] = {};
     for (int i = 0; i < dataLength; ++i)
     {
-        char value = (data[i] - min) * 31 / (max - min);
+        unsigned char value = (data[i] - min) * 31 / (max - min);
         scaled[i] = ((1 << 32) - 1) - ((1 << (32 - value - 1)) - 1);
     }
     for (int i = dataLength; i < 16; i++)
     {
         scaled[i] = 0;
     }
-    // for (char i = 0; i < 16; i++)
-    // {
-    //     Serial.printf("%08X ", scaled[i]);
-    // }
-    // Serial.print("\n ");
 
-    for (char page = 0; page < 4; page++)
+    for (unsigned char page = 0; page < 4; page++)
     {
         for (byte col = 0; col < 128; ++col)
         {
-            char columnValue;
+            unsigned char columnValue;
             if (isThin)
             {
-                columnValue = col % 8 == 4 ? (scaled[col / 8] & (0xFF << (8 * page))) >> (8 * page) : 0;
+                columnValue = col % xDivisor == (xDivisor / 2) ? (scaled[col / xDivisor] & (0xFF << (8 * page))) >> (8 * page) : 0;
             }
             else
             {
-                columnValue = col % 8 == 7 ? 0 : (scaled[col / 8] & (0xFF << (8 * page))) >> (8 * page);
+                columnValue = col % xDivisor == (xDivisor - 1) ? 0 : (scaled[col / xDivisor] & (0xFF << (8 * page))) >> (8 * page);
             }
             disp.dataBuffer[cursor++] = columnValue;
         }
     }
-    Serial.printf("cursor ended method on %d\n", cursor);
 }
 
-void Graphics::titlePlot(const char *str1, char *data, char dataLength, bool isThin)
+void Graphics::titlePlot(const char *str1, unsigned char *data, char dataLength, bool isThin)
 {
     // strcpy(nextStrings[0], str1);
     cursor = 0;

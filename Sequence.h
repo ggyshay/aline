@@ -1,20 +1,17 @@
-// #include <iostream>
-// #include <sstream>
 #include "Note.h"
-// using namespace std;
 
 class Sequence
 {
 private:
-    char selectionStart, selectionEnd;
-    char copySelectionStart, copySelectionEnd;
+    unsigned char selectionStart, selectionEnd;
+    unsigned char copySelectionStart, copySelectionEnd;
 
 public:
-    Note notes[16];
-    char sequenceLength = 16;
+    Note notes[64];
+    unsigned char sequenceLength = 16;
     void setSequenceLengthUp()
     {
-        sequenceLength = sequenceLength + 1 > 16 ? 16 : sequenceLength + 1;
+        sequenceLength = sequenceLength + 1 > 64 ? 64 : sequenceLength + 1;
         Serial.printf("new length %d \n", sequenceLength);
     }
     void setSequenceLengthDown()
@@ -30,7 +27,7 @@ public:
 
     void selectionPitchUp()
     {
-        for (char i = selectionStart; i <= selectionEnd; ++i)
+        for (unsigned char i = selectionStart; i <= selectionEnd; ++i)
         {
             notes[i].pitchUp();
         }
@@ -38,7 +35,7 @@ public:
 
     void selectionPitchDown()
     {
-        for (char i = selectionStart; i <= selectionEnd; ++i)
+        for (unsigned char i = selectionStart; i <= selectionEnd; ++i)
         {
             notes[i].pitchDown();
         }
@@ -46,7 +43,7 @@ public:
 
     void selectionOctUp()
     {
-        for (char i = selectionStart; i <= selectionEnd; ++i)
+        for (unsigned char i = selectionStart; i <= selectionEnd; ++i)
         {
             notes[i].octUp();
         }
@@ -54,7 +51,7 @@ public:
 
     void selectionOctDown()
     {
-        for (char i = selectionStart; i <= selectionEnd; ++i)
+        for (unsigned char i = selectionStart; i <= selectionEnd; ++i)
         {
             notes[i].octDown();
         }
@@ -68,7 +65,7 @@ public:
 
     void pasteToSelection()
     {
-        for (char i = copySelectionStart; i <= copySelectionEnd; ++i)
+        for (unsigned char i = copySelectionStart; i <= copySelectionEnd; ++i)
         {
             notes[selectionStart + i - copySelectionStart] = notes[i];
         }
@@ -76,7 +73,7 @@ public:
 
     void setSelectionDurationUp()
     {
-        for (char i = selectionStart; i <= selectionEnd; ++i)
+        for (unsigned char i = selectionStart; i <= selectionEnd; ++i)
         {
             notes[i].durationUp();
         }
@@ -84,7 +81,7 @@ public:
 
     void setSelectionDurationDown()
     {
-        for (char i = selectionStart; i <= selectionEnd; ++i)
+        for (unsigned char i = selectionStart; i <= selectionEnd; ++i)
         {
             notes[i].durationDown();
         }
@@ -92,7 +89,7 @@ public:
 
     void setSelectionVelocityUp()
     {
-        for (char i = selectionStart; i <= selectionEnd; ++i)
+        for (unsigned char i = selectionStart; i <= selectionEnd; ++i)
         {
             notes[i].velocityUp();
         }
@@ -100,7 +97,7 @@ public:
 
     void setSelectionVelocityDown()
     {
-        for (char i = selectionStart; i <= selectionEnd; ++i)
+        for (unsigned char i = selectionStart; i <= selectionEnd; ++i)
         {
             notes[i].velocityDown();
         }
@@ -108,18 +105,18 @@ public:
 
     void eraseSequence()
     {
-        for (char i = 0; i < 16; i++)
+        for (unsigned char i = 0; i < 64; i++)
         {
             notes[i].reset();
             sequenceLength = 16;
         }
     }
 
-    void changeGates(bool *newGates)
+    void changeGates(bool *newGates, unsigned char page)
     {
-        for (char i = 0; i < 16; i++)
+        for (unsigned char i = 0; i < 16; i++)
         {
-            notes[i].gate = newGates[i];
+            notes[i + 16 * page].gate = newGates[i];
         }
     }
 
@@ -127,7 +124,7 @@ public:
     {
         char vp = notes[selectionStart].velocity;
         char vq = notes[selectionEnd].velocity;
-        for (char i = selectionStart; i <= selectionEnd; i++)
+        for (unsigned char i = selectionStart; i <= selectionEnd; i++)
         {
             notes[i].velocity = (vp - vq) / (selectionStart - selectionEnd) * (i - selectionStart) + vp;
         }
@@ -137,7 +134,7 @@ public:
     {
         String res;
         res = "";
-        for (char i = 0; i < 16; i++)
+        for (unsigned char i = 0; i < sequenceLength; i++)
         {
             res += notes[i].toString();
         }

@@ -2,6 +2,7 @@
 #include "Button.h"
 #include "HAL.h"
 #include "Graphics.h"
+#include "Menu.h"
 #include <stdlib.h>
 #include <functional>
 #define SELECTION_CHANGE_DELAY 700
@@ -21,28 +22,28 @@ private:
     Button *buttons[16];
     Button *auxButtons[8];
     Graphics disp;
+    Menu menu;
 
-    int values[5] = {0, 0, 0, 0, 0};
     bool pressedButtons[16];
-    bool gateButtons[16] = {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1};
     bool gateMode = false;
+    unsigned char currentPage = 0;
     bool pressedAuxButtons[8];
-    char selectionStart = 0;
-    char selectionEnd = 0;
+    unsigned char selectionStart = 0;
+    unsigned char selectionEnd = 0;
     unsigned long lastSelectionChange = 0;
     void detectSelecion()
     {
-        int newSelectionStart = 17;
+        int newSelectionStart = 1000;
         int newSelectionEnd = -1;
-        for (char i = 0; i < 16; i++)
+        for (unsigned char i = 0; i < 16; i++)
         {
-            if (pressedButtons[i] && i < newSelectionStart)
-                newSelectionStart = i;
-            if (pressedButtons[i] && i > newSelectionEnd)
-                newSelectionEnd = i;
+            if (pressedButtons[i] && (16 * currentPage + i < newSelectionStart))
+                newSelectionStart = 16 * currentPage + i;
+            if (pressedButtons[i] && (16 * currentPage + i > newSelectionEnd))
+                newSelectionEnd = 16 * currentPage + i;
         }
 
-        if ((newSelectionEnd == -1) && (newSelectionStart == 17))
+        if ((newSelectionEnd == -1) && (newSelectionStart == 1000))
         {
             return;
         }
@@ -60,6 +61,12 @@ private:
         }
     }
 
+    void updatePageContext()
+    {
+        for (unsigned char i = 0; i < 16; i++)
+            buttons[i]->setPointer(gateMode ? &(notes[i + 16 * currentPage].gate) : pressedButtons + i);
+    }
+
     void detectCommands()
     {
         if (pressedAuxButtons[1])
@@ -73,6 +80,7 @@ private:
             {
                 onCopy();
             }
+            pressedAuxButtons[1] = 0;
         }
         if (pressedAuxButtons[2])
         {
@@ -96,10 +104,10 @@ private:
                 onSelectionChange(0, 15);
                 selectionStart = 0;
                 selectionEnd = 15;
-                for (char i = 0; i < 16; i++)
-                {
-                    gateButtons[i] = true;
-                }
+                // for (char i = 0; i < 16; i++)
+                // {
+                //     gateButtons[i] = true;
+                // }
                 changeWriteMode(LED_SELECTION_MODE, DISPLAY_SELECTION_MODE);
             }
             else
@@ -110,14 +118,34 @@ private:
 
             pressedAuxButtons[3] = 0;
         }
+        if (pressedAuxButtons[4] && currentPage != 0)
+        {
+            currentPage = 0;
+            updatePageContext();
+        }
+        if (pressedAuxButtons[5] && currentPage != 1)
+        {
+            currentPage = 1;
+            updatePageContext();
+        }
+        if (pressedAuxButtons[6] && currentPage != 2)
+        {
+            currentPage = 2;
+            updatePageContext();
+        }
+        if (pressedAuxButtons[7] && currentPage != 3)
+        {
+            currentPage = 3;
+            updatePageContext();
+        }
     }
-    char visualisationMode = LED_STEP_MODE;
-    char displayMode = 1;
+    unsigned char visualisationMode = LED_STEP_MODE;
+    unsigned char displayMode = 1;
     unsigned long lastVisualisationChange = 0;
 
 public:
     int *stepPosition;
-    char *sequenceLength;
+    unsigned char *sequenceLength;
     Note *notes;
     std::function<void(void)> onLengthUp = nullptr;
     std::function<void(void)> onLengthDown = nullptr;
@@ -129,11 +157,11 @@ public:
     std::function<void(void)> onPitchDown = nullptr;
     std::function<void(void)> onOctUp = nullptr;
     std::function<void(void)> onOctDown = nullptr;
-    std::function<void(char, char)> onSelectionChange = nullptr;
+    std::function<void(unsigned char, unsigned char)> onSelectionChange = nullptr;
     std::function<void(void)> onCopy = nullptr;
     std::function<void(void)> onPaste = nullptr;
     std::function<void(void)> onErase = nullptr;
-    std::function<void(bool *)> onGateChange = nullptr;
+    std::function<void(bool *, unsigned char)> onGateChange = nullptr;
     std::function<void(void)> onEase = nullptr;
 
     void setupEncodersCallbacks()
@@ -149,9 +177,9 @@ public:
         };
         encoders[0].onClick = [this]() -> void {
             gateMode = !gateMode;
-            for (char i = 0; i < 16; ++i)
+            for (unsigned char i = 0; i < 16; ++i)
             {
-                buttons[i]->setPointer(gateMode ? gateButtons + i : pressedButtons + i);
+                buttons[i]->setPointer(gateMode ? &(notes[i + 16 * currentPage].gate) : pressedButtons + i);
                 buttons[i]->isReleaseSensitive = !(buttons[i]->isReleaseSensitive);
             }
             changeWriteMode(LED_LENGTH_MODE, gateMode ? DISPLAY_GATE_MODE : DISPLAY_SELECTION_MODE);
@@ -180,42 +208,44 @@ public:
             onVelocityDown();
             changeWriteMode(LED_SELECTION_MODE, DISPLAY_VELOCITY_MODE);
         };
+        encoders[4].onIncrement = [this]() -> void {
+            menu.onIncrement();
+        };
+        encoders[4].onDecrement = [this]() -> void {
+            menu.onDecrement();
+        };
+        encoders[4].onClick = [this]() -> void {
+            menu.onClick();
+        };
     }
 
     void setup()
     {
         setupPins();
-        for (char i = 4; i < 5; i++)
-        {
-            encoders[i].onIncrement = [this, i]() -> void {
-                values[i]++;
-                Serial.printf("e%d  increment: %d \n", i, values[i]);
-            };
-
-            encoders[i].onDecrement = [this, i]() -> void {
-                values[i]--;
-                Serial.printf("e%d  decrement: %d \n", i, values[i]);
-            };
-
-            encoders[i].onClick = [i]() -> void {
-                Serial.printf("e%d click!\n", i);
-            };
-        }
         setupEncodersCallbacks();
 
-        for (char i = 0; i < 16; i++)
+        for (unsigned char i = 0; i < 16; i++)
         {
             buttons[i] = new Button(pressedButtons + i, true);
-            buttons[i]->onToggle = [this]() -> void {
-                onGateChange(gateButtons);
-            };
+            // buttons[i]->onToggle = [this]() -> void {
+            //     onGateChange(gateButtons, currentPage);
+            // };
         }
 
-        for (char i = 0; i < 8; i++)
+        for (unsigned char i = 0; i < 8; i++)
         {
             auxButtons[i] = new Button(pressedAuxButtons + i, true);
         }
         disp.init();
+        menu.disp = &disp;
+        menu.setGraphicsPointer(&disp);
+        menu.onLoad = [](std::vector<int> *stack) -> void {
+            Serial.printf("menu onLoad callback from interface %d\n", (*stack)[0]);
+        };
+        menu.onSave = [](std::vector<int> *stack) -> void {
+            Serial.printf("menu onSave callback from interface %d\n", (*stack)[0]);
+        };
+        menu.init();
     }
 
     void renderSplash()
@@ -225,32 +255,36 @@ public:
 
     void printSequenceMode()
     {
-        Note minNote = notes[selectionStart];
-        Note maxNote = notes[selectionStart];
-        for (char i = selectionStart + 1; i <= selectionEnd; i++)
+        Note minNote = notes[0];
+        Note maxNote = notes[0];
+        for (unsigned char i = 0; i <= *sequenceLength; i++)
         {
             minNote = notes[i].pitch < minNote.pitch ? notes[i] : minNote;
             maxNote = notes[i].pitch > maxNote.pitch ? notes[i] : maxNote;
         }
+        Note minSelectionNote = notes[selectionStart];
+        Note maxSelectionNote = notes[selectionStart];
+        for (unsigned char i = selectionStart; i <= selectionEnd; i++)
+        {
+            minSelectionNote = notes[i].pitch < minSelectionNote.pitch ? notes[i] : minSelectionNote;
+            maxSelectionNote = notes[i].pitch > maxSelectionNote.pitch ? notes[i] : maxSelectionNote;
+        }
+        unsigned char pitches[64] = {};
+        for (unsigned char i = 0; i < *sequenceLength; i++)
+        {
+            pitches[i] = notes[i].pitch;
+        }
         if (selectionStart == selectionEnd)
         {
-            String upperLine = "NOTE " + minNote.toString();
-            char pitches[16] = {};
-            for (char i = 0; i < *sequenceLength; i++)
-            {
-                pitches[i] = notes[i].pitch;
-            }
+            String upperLine = "NOTE " + minSelectionNote.toString();
+            Serial.println(upperLine);
 
             disp.titlePlot(upperLine.c_str(), pitches, *sequenceLength, false);
         }
         else
         {
-            String upperLine = minNote.toString() + " TO " + maxNote.toString();
-            char pitches[16] = {};
-            for (char i = 0; i < *sequenceLength; i++)
-            {
-                pitches[i] = notes[i].pitch;
-            }
+            String upperLine = minSelectionNote.toString() + " TO " + maxSelectionNote.toString();
+            Serial.println(upperLine);
 
             disp.titlePlot(upperLine.c_str(), pitches, *sequenceLength, false);
         }
@@ -260,30 +294,26 @@ public:
     {
         Note minNote = notes[selectionStart];
         Note maxNote = notes[selectionStart];
-        for (char i = selectionStart + 1; i <= selectionEnd; i++)
+        for (unsigned char i = selectionStart + 1; i <= selectionEnd; i++)
         {
             minNote = notes[i].velocity < minNote.velocity ? notes[i] : minNote;
             maxNote = notes[i].velocity > maxNote.velocity ? notes[i] : maxNote;
         }
+        unsigned char velocities[64] = {};
+        for (unsigned char i = 0; i < *sequenceLength; i++)
+        {
+            velocities[i] = notes[i].velocity;
+        }
         if (selectionStart == selectionEnd)
         {
-            String upperLine = "NOTE " + minNote.toString();
-            char velocities[16] = {};
-            for (char i = 0; i < *sequenceLength; i++)
-            {
-                velocities[i] = notes[i].velocity;
-            }
-
+            String upperLine = "VELOCITY " + String((int)minNote.velocity);
+            Serial.println(upperLine);
             disp.titlePlot(upperLine.c_str(), velocities, *sequenceLength, true);
         }
         else
         {
-            String upperLine = minNote.toString() + " TO " + maxNote.toString();
-            char velocities[16] = {};
-            for (char i = 0; i < *sequenceLength; i++)
-            {
-                velocities[i] = notes[i].velocity;
-            }
+            String upperLine = String((int)minNote.velocity) + " TO " + String((int)maxNote.velocity);
+            Serial.println(upperLine);
 
             disp.titlePlot(upperLine.c_str(), velocities, *sequenceLength, true);
         }
@@ -292,30 +322,27 @@ public:
     {
         Note minNote = notes[selectionStart];
         Note maxNote = notes[selectionStart];
-        for (char i = selectionStart + 1; i <= selectionEnd; i++)
+        for (unsigned char i = selectionStart + 1; i <= selectionEnd; i++)
         {
             minNote = notes[i].duration < minNote.duration ? notes[i] : minNote;
             maxNote = notes[i].duration > maxNote.duration ? notes[i] : maxNote;
         }
+        unsigned char durations[64] = {};
+        for (unsigned char i = 0; i < *sequenceLength; i++)
+        {
+            durations[i] = notes[i].duration;
+        }
         if (selectionStart == selectionEnd)
         {
-            String upperLine = "NOTE " + minNote.toString();
-            char durations[16] = {};
-            for (char i = 0; i < *sequenceLength; i++)
-            {
-                durations[i] = notes[i].duration;
-            }
+            String upperLine = "DURATION " + String((int)minNote.duration);
+            Serial.println(upperLine);
 
             disp.titlePlot(upperLine.c_str(), durations, *sequenceLength, true);
         }
         else
         {
-            String upperLine = minNote.toString() + " TO " + maxNote.toString();
-            char durations[16] = {};
-            for (char i = 0; i < *sequenceLength; i++)
-            {
-                durations[i] = notes[i].duration;
-            }
+            String upperLine = String((int)minNote.duration) + " TO " + String((int)maxNote.duration);
+            Serial.println(upperLine);
 
             disp.titlePlot(upperLine.c_str(), durations, *sequenceLength, true);
         }
@@ -356,24 +383,24 @@ public:
         writeToDisplay();
     }
 
-    void writeLedModes(char i)
+    void writeLedModes(unsigned char i)
     {
         if (gateMode)
         {
-            writeLed(gateButtons[i]);
+            writeLed(notes[i + 16 * currentPage].gate);
         }
         else
         {
             switch (visualisationMode)
             {
             case LED_STEP_MODE:
-                writeLed(i == (*stepPosition));
+                writeLed((i + 16 * currentPage) == (*stepPosition));
                 break;
             case LED_SELECTION_MODE:
-                writeLed((i >= selectionStart) && (i <= selectionEnd));
+                writeLed(((i + 16 * currentPage) >= selectionStart) && ((i + 16 * currentPage) <= selectionEnd));
                 break;
             case LED_LENGTH_MODE:
-                writeLed(i < (*sequenceLength));
+                writeLed((i + 16 * currentPage) < (*sequenceLength));
                 break;
             default:
                 break;
@@ -387,7 +414,7 @@ public:
         {
             visualisationMode = LED_STEP_MODE;
         }
-        for (char i = 0; i < 16; i++)
+        for (unsigned char i = 0; i < 16; i++)
         {
             sendBits(i);
             writeLedModes(i);

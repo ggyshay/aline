@@ -20,15 +20,12 @@ public:
         {
             if (A)
             {
-                Serial.println("incrementing");
                 onIncrement();
             }
             else
             {
-                Serial.println("decrement");
                 onDecrement();
             }
-            // value = A ? value + 1 : value - 1;
             changed = true;
         }
 
