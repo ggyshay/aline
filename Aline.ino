@@ -1,12 +1,28 @@
+
 #include <stdlib.h>
 #include <string>
+#include "HAL.h"
+#include "Note.h"
 #include "Sequence.h"
 #include "Interface.h"
 #include "Scheduler.h"
+#include "StateManager.h"
+
+namespace std
+{
+  void __throw_bad_alloc();
+
+  void __throw_length_error(char const *e);
+
+  void __throw_bad_function_call();
+  template class basic_string<char>;
+  void __throw_logic_error(char const *err);
+} // namespace std
 
 Interface interface;
 Sequence sequence;
 Scheduler scheduler;
+StateManager stateManager;
 
 int clockCount = 0;
 void handleClock()
@@ -28,72 +44,30 @@ void setup()
   Serial.println("Serial Started");
   interface.setup();
   interface.onSelectionChange = [](char start, char end) -> void {
-    scheduler.notes = (sequence.notes);
-    Serial.printf("selection changed start: %d  end: %d \n", start, end);
-    Serial.print(sequence.toString());
+    // scheduler.notes = (sequence.notes);
     sequence.setSelection(start, end);
   };
-
-  interface.onPitchUp = []() -> void {
-    sequence.selectionPitchUp();
-    Serial.print(sequence.toString());
-  };
-
-  interface.onPitchDown = []() -> void {
-    sequence.selectionPitchDown();
-    Serial.print(sequence.toString());
-  };
-
-  interface.onOctUp = []() -> void {
-    sequence.selectionOctUp();
-    Serial.print(sequence.toString());
-  };
-
-  interface.onOctDown = []() -> void {
-    sequence.selectionOctDown();
-    Serial.print(sequence.toString());
-  };
-
-  interface.onCopy = []() -> void {
-    sequence.copySelection();
-  };
-
-  interface.onPaste = []() -> void {
-    sequence.pasteToSelection();
-  };
-
-  interface.onDurationUp = []() -> void {
-    sequence.setSelectionDurationUp();
-  };
-  interface.onDurationDown = []() -> void {
-    sequence.setSelectionDurationDown();
-  };
-  interface.onVelocityUp = []() -> void {
-    sequence.setSelectionVelocityUp();
-  };
-  interface.onVelocityDown = []() -> void {
-    sequence.setSelectionVelocityDown();
-  };
-  interface.onLengthUp = []() -> void {
-    sequence.setSequenceLengthUp();
-  };
-  interface.onLengthDown = []() -> void {
-    sequence.setSequenceLengthDown();
-    Serial.printf("echo inteface sequence length %d\n", *interface.sequenceLength);
-  };
-  interface.onErase = []() -> void {
-    sequence.eraseSequence();
-    Serial.println("erase issued");
-  };
-  interface.onGateChange = [](bool *gates, char currentPage) -> void {
-    sequence.changeGates(gates, currentPage);
-  };
-  interface.onEase = []() -> void {
-    sequence.easeSelection();
-  };
+  interface.onPitchUp = []() -> void { sequence.selectionPitchUp(); };
+  interface.onPitchDown = []() -> void { sequence.selectionPitchDown(); };
+  interface.onOctUp = []() -> void { sequence.selectionOctUp(); };
+  interface.onOctDown = []() -> void { sequence.selectionOctDown(); };
+  interface.onCopy = []() -> void { sequence.copySelection(); };
+  interface.onPaste = []() -> void { sequence.pasteToSelection(); };
+  interface.onDurationUp = []() -> void { sequence.setSelectionDurationUp(); };
+  interface.onDurationDown = []() -> void { sequence.setSelectionDurationDown(); };
+  interface.onVelocityUp = []() -> void { sequence.setSelectionVelocityUp(); };
+  interface.onVelocityDown = []() -> void { sequence.setSelectionVelocityDown(); };
+  interface.onLengthUp = []() -> void { sequence.setSequenceLengthUp(); };
+  interface.onLengthDown = []() -> void { sequence.setSequenceLengthDown(); };
+  interface.onErase = []() -> void { sequence.eraseSequence(); };
+  interface.onGateChange = [](bool *gates, char currentPage) -> void { sequence.changeGates(gates, currentPage); };
+  interface.onEase = []() -> void { sequence.easeSelection(); };
   interface.stepPosition = &scheduler.currentNote;
   interface.sequenceLength = &sequence.sequenceLength;
   interface.notes = sequence.notes;
+  interface.onSave = [](int i) -> void { stateManager.saveBank(i, &sequence); };
+
+  interface.onLoad = [](int i) -> void { stateManager.loadBank(i, &sequence); };
 
   Serial.println("Interface setup done");
 
@@ -104,6 +78,7 @@ void setup()
   usbMIDI.setHandleClock(handleClock);
   usbMIDI.setHandleStart(handleStart);
   interface.renderSplash();
+  Serial.printf("size of note %d\n", sizeof(Note));
 }
 void loop()
 {

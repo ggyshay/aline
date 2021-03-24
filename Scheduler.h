@@ -1,7 +1,6 @@
 #include "IntervalTimer.h"
 #include "Arduino.h"
 #include "Note.h"
-// #include "NoteEvent.h"
 
 class Scheduler
 {
