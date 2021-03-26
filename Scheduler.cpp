@@ -2,6 +2,7 @@
 #include "Scheduler.h"
 
 static void handleNoteTimeout();
+static void handleClockOuter();
 
 void Scheduler::init()
 {
@@ -38,7 +39,7 @@ void Scheduler::resetPosition()
 //     //TODO: sort event queue
 // }
 
-void Scheduler::onClock()
+void Scheduler::internalHandleClock()
 {
     if (pendingNote)
         sendNoteOff();
@@ -46,12 +47,18 @@ void Scheduler::onClock()
     {
         periodStart = millis();
     }
-    sixteenth = round(clocks == 0 ? 125 : 1.0f * (millis() - periodStart) / clocks);
+    sixteenth = usignInternalClock ? 15000 / BPM : round(clocks == 0 ? 125 : 1.0f * (millis() - periodStart) / clocks);
     clocks++;
     // Serial.printf("clocks=%d sixteenth=%d delta=%d durationp=%d duration=%ld \n", clocks, sixteenth, millis() - periodStart, (int)notes[currentNote].duration, 10 * sixteenth * notes[currentNote].duration);
 
     txTimer.begin(handleNoteTimeout, 10 * sixteenth * (int)notes[currentNote].duration);
     sendNextNote();
+}
+
+void Scheduler::onClock()
+{
+    if (!usignInternalClock)
+        internalHandleClock();
 }
 
 void Scheduler::sendNoteOff()
@@ -64,9 +71,30 @@ void Scheduler::sendNoteOff()
     pendingNote = false;
 }
 
+void Scheduler::setClockSource(int i)
+{
+    usignInternalClock = i == 1;
+    if (usignInternalClock)
+    {
+        internalClockTimer.begin(handleClockOuter, 15000 / BPM * 1000);
+    }
+    else
+    {
+        internalClockTimer.end();
+    }
+}
+void Scheduler::onBPMChange()
+{
+    internalClockTimer.update(15000 / BPM * 1000);
+}
+
 static void handleNoteTimeout()
 {
     scheduler.sendNoteOff();
+}
+static void handleClockOuter()
+{
+    scheduler.internalHandleClock();
 }
 
 // void Scheduler::onCrudeClock()

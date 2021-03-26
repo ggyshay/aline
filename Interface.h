@@ -66,6 +66,7 @@ public:
     unsigned char *random_scale;
     int *random_seed;
     unsigned char *random_octaves;
+    float *BPM;
     std::function<void(void)> onLengthUp = nullptr;
     std::function<void(void)> onLengthDown = nullptr;
     std::function<void(void)> onDurationUp = nullptr;
@@ -93,7 +94,8 @@ public:
     std::function<void(void)> setRootDown = nullptr;
     std::function<void(void)> setOctavesUp = nullptr;
     std::function<void(void)> setOctavesDown = nullptr;
-
+    std::function<void(int)> onChangeClockSource;
+    std::function<void(void)> onChangeBPM;
     void setup();
     void update();
     void renderSplash();

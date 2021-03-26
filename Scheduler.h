@@ -6,8 +6,8 @@ class Scheduler
 {
 private:
     IntervalTimer txTimer;
-    // int quarterNoteTime = 125000;
-    // NoteEvent eventQueue[32];
+    IntervalTimer internalClockTimer;
+    bool usignInternalClock = false;
     bool pendingNote = false;
 
 public:
@@ -26,6 +26,10 @@ public:
     void onClock();
     void onCrudeClock();
     void onStart();
+    void setClockSource(int i);
+    void onBPMChange();
+    void internalHandleClock();
+    float BPM = 120;
 };
 
 extern Scheduler scheduler;

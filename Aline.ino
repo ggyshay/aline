@@ -43,10 +43,10 @@ void handleStart()
 }
 void setup()
 {
-  sei();
   Serial.begin(112500);
+  while (!Serial)
+    ;
   Serial.println("Serial Started");
-  interface.setup();
   interface.onSelectionChange = [](char start, char end) -> void {
     sequence.setSelection(start, end);
   };
@@ -65,13 +65,6 @@ void setup()
   interface.onErase = []() -> void { sequence.eraseSequence(); };
   interface.onGateChange = [](bool *gates, char currentPage) -> void { sequence.changeGates(gates, currentPage); };
   interface.onEase = []() -> void { sequence.easeSelection(); };
-  interface.stepPosition = &scheduler.currentNote;
-  interface.sequenceLength = &sequence.sequenceLength;
-  interface.notes = sequence.notes;
-  interface.random_root = &sequence.currentRoot;
-  interface.random_scale = &sequence.currentScale;
-  interface.random_seed = &sequence.currentSeed;
-  interface.random_octaves = &sequence.currentOctaves;
   interface.onSave = [](int i) -> void { stateManager.saveBank(i, &sequence); };
   interface.onLoad = [](int i) -> void { stateManager.loadBank(i, &sequence); };
   interface.onMask = [](int i) -> void { stateManager.maskFromBank(i, &sequence); };
@@ -84,6 +77,17 @@ void setup()
   interface.setOctavesUp = [](void) -> void { sequence.setOctavesUp(); };
   interface.setOctavesDown = [](void) -> void { sequence.setOctavesDown(); };
 
+  interface.stepPosition = &scheduler.currentNote;
+  interface.sequenceLength = &sequence.sequenceLength;
+  interface.notes = sequence.notes;
+  interface.random_root = &sequence.currentRoot;
+  interface.random_scale = &sequence.currentScale;
+  interface.random_seed = &sequence.currentSeed;
+  interface.random_octaves = &sequence.currentOctaves;
+  interface.onChangeClockSource = [](int i) -> void { scheduler.setClockSource(i); };
+  interface.onChangeBPM = [](void) -> void { scheduler.onBPMChange(); };
+  interface.BPM = &(scheduler.BPM);
+  interface.setup();
   Serial.println("Interface setup done");
 
   scheduler.init();
@@ -94,12 +98,15 @@ void setup()
   usbMIDI.setHandleStart(handleStart);
   delay(500);
   interface.renderSplash();
+  Serial.println("all setup complete");
 }
 void loop()
 {
   // unsigned long startTime = micros();
   usbMIDI.read();
   interface.update();
+  // delay(100);
+  // Serial.println("loop");
   // meanLoopTime = meanLoopTime * loops / (loops + 1) + (millis() - startTime) / (loops + 1.0);
   // loops += 1;
   // if (loops % 1000 == 0)

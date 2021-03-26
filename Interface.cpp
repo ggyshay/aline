@@ -249,9 +249,12 @@ void Interface::setup()
     disp.init();
     menu.disp = &disp;
     menu.setGraphicsPointer(&disp);
-    menu.onLoad = [this](std::vector<int> *stack) -> void { onLoad((*stack)[0]); };
-    menu.onSave = [this](std::vector<int> *stack) -> void { onSave((*stack)[0]); };
-    menu.onMask = [this](std::vector<int> *stack) -> void { onMask((*stack)[0]); };
+    menu.onLoad = [this](std::vector<int> *stack) -> void { onLoad((*stack)[1]); };
+    menu.onSave = [this](std::vector<int> *stack) -> void { onSave((*stack)[1]); };
+    menu.onMask = [this](std::vector<int> *stack) -> void { onMask((*stack)[1]); };
+    menu.onChangeClockSource = [this](std::vector<int> *stack) -> void { onChangeClockSource((*stack)[2]); };
+    menu.onChangeBPM = [this](std::vector<int> *stack) -> void { onChangeBPM(); };
+    menu.setBPMPointer(BPM);
     menu.init();
 }
 
