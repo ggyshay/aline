@@ -1,4 +1,7 @@
+#include <Arduino.h>
 
+#include <avr/io.h>
+#include <avr/interrupt.h>
 #include <stdlib.h>
 #include <string>
 #include "HAL.h"
@@ -28,23 +31,23 @@ int clockCount = 0;
 void handleClock()
 {
   clockCount = (clockCount + 1) % 6;
+  // Serial.println("clokc");
   if (clockCount == 0)
     scheduler.onClock();
 }
 void handleStart()
 {
+  scheduler.onStart();
   scheduler.resetPosition();
   clockCount = 0;
 }
 void setup()
 {
+  sei();
   Serial.begin(112500);
-  while (!Serial)
-    ;
   Serial.println("Serial Started");
   interface.setup();
   interface.onSelectionChange = [](char start, char end) -> void {
-    // scheduler.notes = (sequence.notes);
     sequence.setSelection(start, end);
   };
   interface.onPitchUp = []() -> void { sequence.selectionPitchUp(); };
@@ -65,9 +68,21 @@ void setup()
   interface.stepPosition = &scheduler.currentNote;
   interface.sequenceLength = &sequence.sequenceLength;
   interface.notes = sequence.notes;
+  interface.random_root = &sequence.currentRoot;
+  interface.random_scale = &sequence.currentScale;
+  interface.random_seed = &sequence.currentSeed;
+  interface.random_octaves = &sequence.currentOctaves;
   interface.onSave = [](int i) -> void { stateManager.saveBank(i, &sequence); };
-
   interface.onLoad = [](int i) -> void { stateManager.loadBank(i, &sequence); };
+  interface.onMask = [](int i) -> void { stateManager.maskFromBank(i, &sequence); };
+  interface.setRootUp = [](void) -> void { sequence.setRootUp(); };
+  interface.setRootDown = [](void) -> void { sequence.setRootDown(); };
+  interface.setScaleUp = [](void) -> void { sequence.setScaleUp(); };
+  interface.setScaleDown = [](void) -> void { sequence.setScaleDown(); };
+  interface.setSeedUp = [](void) -> void { sequence.setSeedUp(); };
+  interface.setSeedDown = [](void) -> void { sequence.setSeedDown(); };
+  interface.setOctavesUp = [](void) -> void { sequence.setOctavesUp(); };
+  interface.setOctavesDown = [](void) -> void { sequence.setOctavesDown(); };
 
   Serial.println("Interface setup done");
 
@@ -77,8 +92,8 @@ void setup()
 
   usbMIDI.setHandleClock(handleClock);
   usbMIDI.setHandleStart(handleStart);
+  delay(500);
   interface.renderSplash();
-  Serial.printf("size of note %d\n", sizeof(Note));
 }
 void loop()
 {

@@ -16,7 +16,12 @@
 #define DISPLAY_SELECTION_MODE 0
 #define DISPLAY_VELOCITY_MODE 1
 #define DISPLAY_DURATION_MODE 2
-#define DISPLAY_GATE_MODE 3
+#define DISPLAY_LENGTH_MODE 3
+#define DISPLAY_GATE_MODE 4
+#define DISPLAY_RANDOM_ROOT_MODE 5
+#define DISPLAY_RANDOM_SCALE_MODE 6
+#define DISPLAY_RANDOM_SEED_MODE 7
+#define DISPLAY_RANDOM_OCTAVES_MODE 8
 #define VISUALISATION_CHANGE_DEBOUNCE 2000
 
 class Interface
@@ -30,6 +35,7 @@ private:
 
     bool pressedButtons[16];
     bool gateMode = false;
+    bool randomMode = false;
     unsigned char currentPage = 0;
     bool pressedAuxButtons[8];
     unsigned char selectionStart = 0;
@@ -47,6 +53,7 @@ private:
     void printSequenceMode();
     void printVelocityMode();
     void printDurationMode();
+    void printLengthMode();
     void writeToDisplay();
     void changeWriteMode(int newMode, int newDisplayMode);
     void writeLedModes(unsigned char i);
@@ -55,6 +62,10 @@ public:
     int *stepPosition;
     unsigned char *sequenceLength;
     Note *notes;
+    unsigned char *random_root;
+    unsigned char *random_scale;
+    int *random_seed;
+    unsigned char *random_octaves;
     std::function<void(void)> onLengthUp = nullptr;
     std::function<void(void)> onLengthDown = nullptr;
     std::function<void(void)> onDurationUp = nullptr;
@@ -73,6 +84,15 @@ public:
     std::function<void(void)> onEase = nullptr;
     std::function<void(int)> onLoad = nullptr;
     std::function<void(int)> onSave = nullptr;
+    std::function<void(int)> onMask = nullptr;
+    std::function<void(void)> setSeedUp = nullptr;
+    std::function<void(void)> setSeedDown = nullptr;
+    std::function<void(void)> setScaleUp = nullptr;
+    std::function<void(void)> setScaleDown = nullptr;
+    std::function<void(void)> setRootUp = nullptr;
+    std::function<void(void)> setRootDown = nullptr;
+    std::function<void(void)> setOctavesUp = nullptr;
+    std::function<void(void)> setOctavesDown = nullptr;
 
     void setup();
     void update();

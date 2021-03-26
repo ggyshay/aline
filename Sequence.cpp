@@ -4,12 +4,10 @@
 void Sequence::setSequenceLengthUp()
 {
     sequenceLength = sequenceLength + 1 > 64 ? 64 : sequenceLength + 1;
-    Serial.printf("new length %d \n", sequenceLength);
 }
 void Sequence::setSequenceLengthDown()
 {
     sequenceLength = sequenceLength - 1 < 1 ? 1 : sequenceLength - 1;
-    Serial.printf("new length %d \n", sequenceLength);
 }
 void Sequence::setSelection(char start, char end)
 {
@@ -120,6 +118,71 @@ void Sequence::easeSelection()
     {
         notes[i].velocity = (vp - vq) / (selectionStart - selectionEnd) * (i - selectionStart) + vp;
     }
+}
+
+char Sequence::noteToScale(char n)
+{
+    return currentRoot + scales[currentScale][n % 12] + 12 * (n / 12);
+}
+
+void Sequence::setSeedUp()
+{
+    currentSeed++;
+    randomize();
+}
+
+void Sequence::setSeedDown()
+{
+    currentSeed--;
+    randomize();
+}
+
+void Sequence::randomize()
+{
+    randomSeed(currentSeed);
+    for (unsigned char i = 0; i < 64; ++i)
+    {
+        notes[i].pitch = noteToScale((char)random(36, currentOctaves * 12 + 36));
+    }
+}
+void Sequence::setScaleUp()
+{
+    currentScale = (currentScale + 1) % 7;
+    randomize();
+}
+void Sequence::setScaleDown()
+{
+
+    currentScale = (currentScale + 6) % 7;
+    randomize();
+}
+void Sequence::setRootUp()
+{
+    currentRoot = (currentRoot + 1) % 12;
+    for (unsigned char i = 0; i < 64; i++)
+    {
+        notes[i].pitch++;
+    }
+}
+void Sequence::setRootDown()
+{
+    currentRoot = (currentRoot + 11) % 12;
+    for (unsigned char i = 0; i < 64; i++)
+    {
+        notes[i].pitch--;
+    }
+}
+
+void Sequence::setOctavesUp()
+{
+    currentOctaves++;
+    randomize();
+}
+
+void Sequence::setOctavesDown()
+{
+    currentOctaves = currentOctaves - 1 <= 1 ? 1 : currentOctaves - 1;
+    randomize();
 }
 
 String Sequence::toString()

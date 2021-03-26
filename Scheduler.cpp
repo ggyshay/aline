@@ -10,6 +10,7 @@ void Scheduler::init()
 
 void Scheduler::sendNextNote()
 {
+    pendingNote = true;
     int length = *sequenceLength;
     currentNote = (currentNote + 1) % length;
     if (notes[currentNote].gate)
@@ -39,7 +40,17 @@ void Scheduler::resetPosition()
 
 void Scheduler::onClock()
 {
-    txTimer.begin(handleNoteTimeout, quarterNoteTime * notes[currentNote].duration / 100); // note duration
+    if (pendingNote)
+        sendNoteOff();
+    if (clocks == 0)
+    {
+        periodStart = millis();
+    }
+    sixteenth = round(clocks == 0 ? 125 : 1.0f * (millis() - periodStart) / clocks);
+    clocks++;
+    // Serial.printf("clocks=%d sixteenth=%d delta=%d durationp=%d duration=%ld \n", clocks, sixteenth, millis() - periodStart, (int)notes[currentNote].duration, 10 * sixteenth * notes[currentNote].duration);
+
+    txTimer.begin(handleNoteTimeout, 10 * sixteenth * (int)notes[currentNote].duration);
     sendNextNote();
 }
 
@@ -50,9 +61,21 @@ void Scheduler::sendNoteOff()
     {
         usbMIDI.sendNoteOff(lastSentNote.pitch, lastSentNote.velocity, 0);
     }
+    pendingNote = false;
 }
 
 static void handleNoteTimeout()
 {
     scheduler.sendNoteOff();
+}
+
+// void Scheduler::onCrudeClock()
+// {
+
+// }
+
+void Scheduler::onStart()
+{
+    clocks = 0;
+    periodStart = millis();
 }

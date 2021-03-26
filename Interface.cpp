@@ -19,7 +19,7 @@ void Interface::detectSelecion()
 
     if ((newSelectionStart != selectionStart) || (newSelectionEnd != selectionEnd))
     {
-        if ((millis() - lastSelectionChange > SELECTION_CHANGE_DELAY) || (newSelectionStart != newSelectionEnd))
+        if ((millis() - lastSelectionChange > SELECTION_CHANGE_DELAY) || (newSelectionStart != newSelectionEnd) || ((newSelectionStart == newSelectionEnd) && (selectionStart == selectionEnd)))
         {
             lastSelectionChange = millis();
             onSelectionChange(newSelectionStart, newSelectionEnd);
@@ -112,15 +112,107 @@ void Interface::detectCommands()
 void Interface::setupEncodersCallbacks()
 {
     encoders[0].onIncrement = [this]() -> void {
-        onPitchUp();
-        changeWriteMode(LED_SELECTION_MODE, DISPLAY_SELECTION_MODE);
+        if (randomMode)
+        {
+            setRootUp();
+            changeWriteMode(LED_SELECTION_MODE, DISPLAY_RANDOM_ROOT_MODE);
+        }
+        else
+        {
+            onPitchUp();
+            changeWriteMode(LED_SELECTION_MODE, DISPLAY_SELECTION_MODE);
+        }
     };
 
     encoders[0].onDecrement = [this]() -> void {
-        onPitchDown();
-        changeWriteMode(LED_SELECTION_MODE, DISPLAY_SELECTION_MODE);
+        if (randomMode)
+        {
+            setRootDown();
+            changeWriteMode(LED_SELECTION_MODE, DISPLAY_RANDOM_ROOT_MODE);
+        }
+        else
+        {
+            onPitchDown();
+            changeWriteMode(LED_SELECTION_MODE, DISPLAY_SELECTION_MODE);
+        }
     };
     encoders[0].onClick = [this]() -> void {
+        randomMode = !randomMode;
+        changeWriteMode(LED_LENGTH_MODE, randomMode ? DISPLAY_RANDOM_ROOT_MODE : DISPLAY_SELECTION_MODE);
+    };
+    encoders[1].onIncrement = [this]() -> void {
+        if (randomMode)
+        {
+            setScaleUp();
+            changeWriteMode(LED_SELECTION_MODE, DISPLAY_RANDOM_SCALE_MODE);
+        }
+        else
+        {
+            onLengthUp();
+            changeWriteMode(LED_LENGTH_MODE, DISPLAY_LENGTH_MODE);
+        }
+    };
+    encoders[1].onDecrement = [this]() -> void {
+        if (randomMode)
+        {
+            setScaleDown();
+            changeWriteMode(LED_SELECTION_MODE, DISPLAY_RANDOM_SCALE_MODE);
+        }
+        else
+        {
+            onLengthDown();
+            changeWriteMode(LED_LENGTH_MODE, DISPLAY_LENGTH_MODE);
+        }
+    };
+    encoders[2].onIncrement = [this]() -> void {
+        if (randomMode)
+        {
+            setSeedUp();
+            changeWriteMode(LED_SELECTION_MODE, DISPLAY_RANDOM_SEED_MODE);
+        }
+        else
+        {
+            onDurationUp();
+            changeWriteMode(LED_SELECTION_MODE, DISPLAY_DURATION_MODE);
+        }
+    };
+    encoders[2].onDecrement = [this]() -> void {
+        if (randomMode)
+        {
+            setSeedDown();
+            changeWriteMode(LED_SELECTION_MODE, DISPLAY_RANDOM_SEED_MODE);
+        }
+        else
+        {
+            onDurationDown();
+            changeWriteMode(LED_SELECTION_MODE, DISPLAY_DURATION_MODE);
+        }
+    };
+    encoders[3].onIncrement = [this]() -> void {
+        if (randomMode)
+        {
+            setOctavesUp();
+            changeWriteMode(LED_SELECTION_MODE, DISPLAY_RANDOM_OCTAVES_MODE);
+        }
+        else
+        {
+            onVelocityUp();
+            changeWriteMode(LED_SELECTION_MODE, DISPLAY_VELOCITY_MODE);
+        }
+    };
+    encoders[3].onDecrement = [this]() -> void {
+        if (randomMode)
+        {
+            setOctavesDown();
+            changeWriteMode(LED_SELECTION_MODE, DISPLAY_RANDOM_OCTAVES_MODE);
+        }
+        else
+        {
+            onVelocityDown();
+            changeWriteMode(LED_SELECTION_MODE, DISPLAY_VELOCITY_MODE);
+        }
+    };
+    encoders[3].onClick = [this]() -> void {
         gateMode = !gateMode;
         for (unsigned char i = 0; i < 16; ++i)
         {
@@ -128,30 +220,6 @@ void Interface::setupEncodersCallbacks()
             buttons[i]->isReleaseSensitive = !(buttons[i]->isReleaseSensitive);
         }
         changeWriteMode(LED_LENGTH_MODE, gateMode ? DISPLAY_GATE_MODE : DISPLAY_SELECTION_MODE);
-    };
-    encoders[1].onIncrement = [this]() -> void {
-        onLengthUp();
-        changeWriteMode(LED_LENGTH_MODE, DISPLAY_SELECTION_MODE);
-    };
-    encoders[1].onDecrement = [this]() -> void {
-        onLengthDown();
-        changeWriteMode(LED_LENGTH_MODE, DISPLAY_SELECTION_MODE);
-    };
-    encoders[2].onIncrement = [this]() -> void {
-        onDurationUp();
-        changeWriteMode(LED_SELECTION_MODE, DISPLAY_DURATION_MODE);
-    };
-    encoders[2].onDecrement = [this]() -> void {
-        onDurationDown();
-        changeWriteMode(LED_SELECTION_MODE, DISPLAY_DURATION_MODE);
-    };
-    encoders[3].onIncrement = [this]() -> void {
-        onVelocityUp();
-        changeWriteMode(LED_SELECTION_MODE, DISPLAY_VELOCITY_MODE);
-    };
-    encoders[3].onDecrement = [this]() -> void {
-        onVelocityDown();
-        changeWriteMode(LED_SELECTION_MODE, DISPLAY_VELOCITY_MODE);
     };
     encoders[4].onIncrement = [this]() -> void {
         menu.onIncrement();
@@ -181,14 +249,9 @@ void Interface::setup()
     disp.init();
     menu.disp = &disp;
     menu.setGraphicsPointer(&disp);
-    menu.onLoad = [this](std::vector<int> *stack) -> void {
-        onLoad((*stack)[0]);
-        Serial.printf("menu onLoad callback from interface %d\n", (*stack)[0]);
-    };
-    menu.onSave = [this](std::vector<int> *stack) -> void {
-        onSave((*stack)[0]);
-        Serial.printf("menu onSave callback from interface %d\n", (*stack)[0]);
-    };
+    menu.onLoad = [this](std::vector<int> *stack) -> void { onLoad((*stack)[0]); };
+    menu.onSave = [this](std::vector<int> *stack) -> void { onSave((*stack)[0]); };
+    menu.onMask = [this](std::vector<int> *stack) -> void { onMask((*stack)[0]); };
     menu.init();
 }
 
@@ -221,15 +284,43 @@ void Interface::printSequenceMode()
     if (selectionStart == selectionEnd)
     {
         String upperLine = "NOTE " + minSelectionNote.toString();
-        Serial.println(upperLine);
-
         disp.titlePlot(upperLine.c_str(), pitches, *sequenceLength, false);
     }
     else
     {
         String upperLine = minSelectionNote.toString() + " TO " + maxSelectionNote.toString();
-        Serial.println(upperLine);
-
+        disp.titlePlot(upperLine.c_str(), pitches, *sequenceLength, false);
+    }
+}
+void Interface::printLengthMode()
+{
+    Note minNote = notes[0];
+    Note maxNote = notes[0];
+    for (unsigned char i = 0; i <= *sequenceLength; i++)
+    {
+        minNote = notes[i].pitch < minNote.pitch ? notes[i] : minNote;
+        maxNote = notes[i].pitch > maxNote.pitch ? notes[i] : maxNote;
+    }
+    Note minSelectionNote = notes[selectionStart];
+    Note maxSelectionNote = notes[selectionStart];
+    for (unsigned char i = selectionStart; i <= selectionEnd; i++)
+    {
+        minSelectionNote = notes[i].pitch < minSelectionNote.pitch ? notes[i] : minSelectionNote;
+        maxSelectionNote = notes[i].pitch > maxSelectionNote.pitch ? notes[i] : maxSelectionNote;
+    }
+    unsigned char pitches[64] = {};
+    for (unsigned char i = 0; i < *sequenceLength; i++)
+    {
+        pitches[i] = notes[i].pitch;
+    }
+    if (selectionStart == selectionEnd)
+    {
+        String upperLine = "LENGTH " + String((int)*sequenceLength);
+        disp.titlePlot(upperLine.c_str(), pitches, *sequenceLength, false);
+    }
+    else
+    {
+        String upperLine = "LENGTH " + String((int)*sequenceLength);
         disp.titlePlot(upperLine.c_str(), pitches, *sequenceLength, false);
     }
 }
@@ -251,14 +342,11 @@ void Interface::printVelocityMode()
     if (selectionStart == selectionEnd)
     {
         String upperLine = "VELOCITY " + String((int)minNote.velocity);
-        Serial.println(upperLine);
         disp.titlePlot(upperLine.c_str(), velocities, *sequenceLength, true);
     }
     else
     {
         String upperLine = String((int)minNote.velocity) + " TO " + String((int)maxNote.velocity);
-        Serial.println(upperLine);
-
         disp.titlePlot(upperLine.c_str(), velocities, *sequenceLength, true);
     }
 }
@@ -279,22 +367,17 @@ void Interface::printDurationMode()
     if (selectionStart == selectionEnd)
     {
         String upperLine = "DURATION " + String((int)minNote.duration);
-        Serial.println(upperLine);
-
         disp.titlePlot(upperLine.c_str(), durations, *sequenceLength, true);
     }
     else
     {
         String upperLine = String((int)minNote.duration) + " TO " + String((int)maxNote.duration);
-        Serial.println(upperLine);
-
         disp.titlePlot(upperLine.c_str(), durations, *sequenceLength, true);
     }
 }
 
 void Interface::writeToDisplay()
 {
-    String line = "";
     if (displayMode == DISPLAY_SELECTION_MODE)
     {
         printSequenceMode();
@@ -312,12 +395,34 @@ void Interface::writeToDisplay()
 
         disp.buildTwoStringScreen("GATE MODE", " ");
     }
-    else
+    else if (displayMode == DISPLAY_LENGTH_MODE)
     {
-        line = "LENGTH";
-        disp.buildTwoStringScreen(line.c_str(), ""); //(float)*sequenceLength
+        printLengthMode();
+    }
+    else if (displayMode == DISPLAY_RANDOM_ROOT_MODE)
+    {
+
+        disp.buildTwoStringScreen("R ROOT", noteName[*random_root].c_str());
+    }
+    else if (displayMode == DISPLAY_RANDOM_SCALE_MODE)
+    {
+
+        disp.buildTwoStringScreen("R SCALE", scaleNames[*random_scale].c_str());
+    }
+    else if (displayMode == DISPLAY_RANDOM_SEED_MODE)
+    {
+        disp.buildTwoStringScreen("R SEED", String(*random_seed).c_str());
+    }
+    else if (displayMode == DISPLAY_RANDOM_OCTAVES_MODE)
+    {
+
+        disp.buildTwoStringScreen("R OCTAVES", String(*random_octaves).c_str());
     }
 }
+#define DISPLAY_RANDOM_ROOT_MODE 5
+#define DISPLAY_RANDOM_SCALE_MODE 6
+#define DISPLAY_RANDOM_SEED_MODE 7
+#define DISPLAY_RANDOM_OCTAVES_MODE 8
 
 void Interface::changeWriteMode(int newMode, int newDisplayMode)
 {

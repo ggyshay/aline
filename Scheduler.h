@@ -6,13 +6,17 @@ class Scheduler
 {
 private:
     IntervalTimer txTimer;
-    int quarterNoteTime = 125000;
+    // int quarterNoteTime = 125000;
     // NoteEvent eventQueue[32];
+    bool pendingNote = false;
 
 public:
     int currentNote = 0;
+    int sixteenth = 120;
     Note lastSentNote;
     Note *notes;
+    int clocks = 0;
+    long unsigned int periodStart = 0;
     unsigned char *sequenceLength;
     void sendNextNote();
     void sendNoteOff();
@@ -20,43 +24,8 @@ public:
     void resetPosition();
     // void updateSequence();
     void onClock();
+    void onCrudeClock();
+    void onStart();
 };
 
 extern Scheduler scheduler;
-
-// class Scheduler
-// {
-
-// public:
-//     bool hasBegun = false;
-//     int notes[4];
-//     static int currentNote;
-
-//     IntervalTimer schedulerTimer;
-//     void sendNextNote()
-//     {
-//         // Serial.println("test");
-//         Serial.printf("sending note %d", notes[Scheduler::currentNote]);
-//         // Scheduler::currentNote = (Scheduler::currentNote + 1) % 4;
-//     }
-//     void setSequence()
-//     {
-//         for (char i = 0; i < 4; i++)
-//         {
-//             notes[i] = 36 + 2 * i;
-//         }
-//     }
-
-//     void begin()
-//     {
-//         // if (hasBegun)
-//         //     return;
-//         // return;
-//         Serial.println("begin scheduler");
-//         schedulerTimer.begin(sendNextNote, 1250000);
-//         setSequence();
-//         // hasBegun = true;
-//     }
-// };
-
-// int Scheduler::currentNote = 0;

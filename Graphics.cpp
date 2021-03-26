@@ -40,6 +40,14 @@ void Graphics::writeLine(const char *s)
                     ++col;
                 }
             }
+            else if (*(s + index) == 0x23)
+            {
+                for (char i = 0; i < 9; i++)
+                {
+                    disp.dataBuffer[++cursor] = cursor % 4 == 3 ? 0xff : 0x10;
+                    ++col;
+                }
+            }
             else
             {
                 for (char i = 0; i < 9; i++)

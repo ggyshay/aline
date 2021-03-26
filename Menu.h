@@ -63,27 +63,32 @@ public:
     Menu()
     {
         Screen loadSaveScreen("BANK");
-        loadSaveScreen.strings.push_back("0");
         loadSaveScreen.strings.push_back("1");
         loadSaveScreen.strings.push_back("2");
         loadSaveScreen.strings.push_back("3");
+        loadSaveScreen.strings.push_back("4");
+        loadSaveScreen.strings.push_back("5");
+        loadSaveScreen.strings.push_back("6");
+        loadSaveScreen.strings.push_back("7");
+        loadSaveScreen.strings.push_back("8");
 
         Screen loadSaveOperationScreen("ACTION");
         loadSaveOperationScreen.strings.push_back("LOAD");
         loadSaveOperationScreen.strings.push_back("SAVE");
+        loadSaveOperationScreen.strings.push_back("MASK");
         loadSaveOperationScreen.strings.push_back("BACK");
 
         screens.push_back(loadSaveScreen);
         screens.push_back(loadSaveOperationScreen);
         currentScreen = &(screens[0]);
         previousScreen = &(screens[0]);
-        screens[0].nextScreens = {&(screens[1]), &(screens[1]), &(screens[1]), &(screens[1])};
-        screens[1].nextScreens = {nullptr, nullptr, nullptr};
+        screens[0].nextScreens = {&(screens[1]), &(screens[1]), &(screens[1]), &(screens[1]), &(screens[1]), &(screens[1]), &(screens[1]), &(screens[1])};
+        screens[1].nextScreens = {nullptr, nullptr, nullptr, nullptr};
     }
     void init()
     {
-        screens[0].callbacks = {nullptr, nullptr, nullptr, nullptr};
-        screens[1].callbacks = {onLoad, onSave, nullptr};
+        screens[0].callbacks = {nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr};
+        screens[1].callbacks = {onLoad, onSave, onMask, nullptr};
     }
     void setGraphicsPointer(Graphics *_d)
     {
@@ -97,6 +102,7 @@ public:
         Screen *nextScreen;
         if (currentScreen->nextScreen() == nullptr)
         {
+            Serial.println("next screen is empty");
             paramterStack.empty();
             while (!paramterStack.empty())
                 paramterStack.pop_back();
@@ -121,6 +127,7 @@ public:
     }
     std::function<void(std::vector<int> *)> onLoad;
     std::function<void(std::vector<int> *)> onSave;
+    std::function<void(std::vector<int> *)> onMask;
 };
 
 #endif
