@@ -44,8 +44,8 @@ void handleStart()
 void setup()
 {
   Serial.begin(112500);
-  while (!Serial)
-    ;
+  // while (!Serial)
+  //   ;
   Serial.println("Serial Started");
   interface.onSelectionChange = [](char start, char end) -> void {
     sequence.setSelection(start, end);
