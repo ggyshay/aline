@@ -164,7 +164,11 @@ void Interface::setupEncodersCallbacks()
             changeWriteMode(LED_LENGTH_MODE, DISPLAY_LENGTH_MODE);
         }
     };
-    encoders[2].onIncrement = [this]() -> void {
+    encoders[1].onClick = [this]() -> void {
+        disp.buildTwoStringScreen("PAU NO CU", "DO BOLSONARO");
+    };
+    encoders[2]
+        .onIncrement = [this]() -> void {
         if (randomMode)
         {
             setSeedUp();
@@ -188,7 +192,11 @@ void Interface::setupEncodersCallbacks()
             changeWriteMode(LED_SELECTION_MODE, DISPLAY_DURATION_MODE);
         }
     };
-    encoders[3].onIncrement = [this]() -> void {
+    encoders[2].onClick = [this]() -> void {
+        disp.buildTwoStringScreen("PAU NO CU", "DO BOLSONARO");
+    };
+    encoders[3]
+        .onIncrement = [this]() -> void {
         if (randomMode)
         {
             setOctavesUp();
@@ -260,7 +268,7 @@ void Interface::setup()
 
 void Interface::renderSplash()
 {
-    disp.buildTwoStringScreen("ALINE", " ");
+    disp.buildSplash();
 }
 
 void Interface::printSequenceMode()
@@ -287,12 +295,12 @@ void Interface::printSequenceMode()
     if (selectionStart == selectionEnd)
     {
         String upperLine = "NOTE " + minSelectionNote.toString();
-        disp.titlePlot(upperLine.c_str(), pitches, *sequenceLength, false);
+        disp.titlePlot(upperLine.c_str(), pitches, *sequenceLength, false, selectionStart, selectionEnd);
     }
     else
     {
         String upperLine = minSelectionNote.toString() + " TO " + maxSelectionNote.toString();
-        disp.titlePlot(upperLine.c_str(), pitches, *sequenceLength, false);
+        disp.titlePlot(upperLine.c_str(), pitches, *sequenceLength, false, selectionStart, selectionEnd);
     }
 }
 void Interface::printLengthMode()
@@ -319,12 +327,12 @@ void Interface::printLengthMode()
     if (selectionStart == selectionEnd)
     {
         String upperLine = "LENGTH " + String((int)*sequenceLength);
-        disp.titlePlot(upperLine.c_str(), pitches, *sequenceLength, false);
+        disp.titlePlot(upperLine.c_str(), pitches, *sequenceLength, false, selectionStart, selectionEnd);
     }
     else
     {
         String upperLine = "LENGTH " + String((int)*sequenceLength);
-        disp.titlePlot(upperLine.c_str(), pitches, *sequenceLength, false);
+        disp.titlePlot(upperLine.c_str(), pitches, *sequenceLength, false, selectionStart, selectionEnd);
     }
 }
 
@@ -345,12 +353,12 @@ void Interface::printVelocityMode()
     if (selectionStart == selectionEnd)
     {
         String upperLine = "VELOCITY " + String((int)minNote.velocity);
-        disp.titlePlot(upperLine.c_str(), velocities, *sequenceLength, true);
+        disp.titlePlot(upperLine.c_str(), velocities, *sequenceLength, true, selectionStart, selectionEnd);
     }
     else
     {
         String upperLine = String((int)minNote.velocity) + " TO " + String((int)maxNote.velocity);
-        disp.titlePlot(upperLine.c_str(), velocities, *sequenceLength, true);
+        disp.titlePlot(upperLine.c_str(), velocities, *sequenceLength, true, selectionStart, selectionEnd);
     }
 }
 void Interface::printDurationMode()
@@ -362,20 +370,20 @@ void Interface::printDurationMode()
         minNote = notes[i].duration < minNote.duration ? notes[i] : minNote;
         maxNote = notes[i].duration > maxNote.duration ? notes[i] : maxNote;
     }
-    unsigned char durations[64] = {};
+    int durations[64] = {};
     for (unsigned char i = 0; i < *sequenceLength; i++)
     {
         durations[i] = notes[i].duration;
     }
     if (selectionStart == selectionEnd)
     {
-        String upperLine = "DURATION " + String((int)minNote.duration);
-        disp.titlePlot(upperLine.c_str(), durations, *sequenceLength, true);
+        String upperLine = "DURATION " + String(minNote.duration);
+        disp.titlePlot(upperLine.c_str(), durations, *sequenceLength, true, selectionStart, selectionEnd);
     }
     else
     {
-        String upperLine = String((int)minNote.duration) + " TO " + String((int)maxNote.duration);
-        disp.titlePlot(upperLine.c_str(), durations, *sequenceLength, true);
+        String upperLine = String(minNote.duration) + " TO " + String(maxNote.duration);
+        disp.titlePlot(upperLine.c_str(), durations, *sequenceLength, true, selectionStart, selectionEnd);
     }
 }
 

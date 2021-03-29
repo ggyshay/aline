@@ -13,8 +13,9 @@ public:
     unsigned char currentScale = 0;
     int currentSeed = 0;
     unsigned char currentRoot = 0;
-    unsigned char currentOctaves = 0;
+    unsigned char currentOctaves = 1;
     Note notes[64];
+    Note copyBuffer[16];
     unsigned char sequenceLength = 16;
     void setSequenceLengthUp();
     void setSequenceLengthDown();

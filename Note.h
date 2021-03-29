@@ -6,7 +6,7 @@ class Note
 {
 public:
     char pitch = 36;
-    char duration = 80;
+    int duration = 80;
     char velocity = 100;
     bool gate = true;
     void reset()
@@ -38,22 +38,24 @@ public:
 
     void durationUp()
     {
-        duration = duration > 99 ? 100 : duration + 1;
+        int newDuration = duration + 4 * (duration / 100 + 1);
+        duration = newDuration > 1600 ? 1600 : newDuration;
     }
 
     void durationDown()
     {
-        duration = duration < 2 ? 1 : duration - 1;
+        int newDuration = duration - 4 * (duration / 100 + 1);
+        duration = newDuration < 1 ? 1 : newDuration;
     }
 
     void velocityUp()
     {
-        velocity = velocity > 126 ? 127 : velocity + 1;
+        velocity = velocity > 123 ? 127 : velocity + 4;
     }
 
     void velocityDown()
     {
-        velocity = velocity < 1 ? 0 : velocity - 1;
+        velocity = velocity < 4 ? 0 : velocity - 4;
     }
 
     String toString()

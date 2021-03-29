@@ -11,8 +11,19 @@ void Graphics::blackLine()
     byte col = 0;
     while (col < 128)
     {
-        disp.dataBuffer[++cursor] = 0x0;
+        disp.dataBuffer[cursor++] = 0x0;
         ++col;
+    }
+}
+
+void Graphics::selectionLine(unsigned char s, unsigned char e, char dataLength)
+{
+    int xScale = 16 * (1 + (dataLength - 1) / 16);
+    int xDivisor = 128 / xScale;
+
+    for (byte col = 0; col < 128; ++col)
+    {
+        disp.dataBuffer[cursor++] = ((col / xDivisor) >= s && (col / xDivisor) <= e) ? 0xE0 : 0;
     }
 }
 
@@ -24,7 +35,7 @@ void Graphics::writeLine(const char *s)
         for (; col < 9; ++col)
         {
 
-            disp.dataBuffer[++cursor] = 0x0; // 9 columns padding
+            disp.dataBuffer[cursor++] = 0x0; // 9 columns padding
         }
 
         byte index = 0;
@@ -36,7 +47,7 @@ void Graphics::writeLine(const char *s)
             {
                 for (char i = 0; i < 9; i++)
                 {
-                    disp.dataBuffer[++cursor] = 0x0;
+                    disp.dataBuffer[cursor++] = 0x0;
                     ++col;
                 }
             }
@@ -44,7 +55,7 @@ void Graphics::writeLine(const char *s)
             {
                 for (char i = 0; i < 9; i++)
                 {
-                    disp.dataBuffer[++cursor] = cursor % 4 == 3 ? 0xff : 0x10;
+                    disp.dataBuffer[cursor++] = cursor % 4 == 3 ? 0xff : 0x10;
                     ++col;
                 }
             }
@@ -52,7 +63,7 @@ void Graphics::writeLine(const char *s)
             {
                 for (char i = 0; i < 9; i++)
                 {
-                    disp.dataBuffer[++cursor] = pgm_read_byte(&(font_bmap[18 * c + i + page * 9]));
+                    disp.dataBuffer[cursor++] = pgm_read_byte(&(font_bmap[18 * c + i + page * 9]));
                     ++col;
                 }
             }
@@ -60,7 +71,7 @@ void Graphics::writeLine(const char *s)
         }
         while (col < 128)
         {
-            disp.dataBuffer[++cursor] = 0x0;
+            disp.dataBuffer[cursor++] = 0x0;
             ++col;
         }
     }
@@ -105,15 +116,64 @@ void Graphics::plotGraph(unsigned const char *data, char dataLength, bool isThin
         }
     }
 }
+void Graphics::plotGraph(int *data, char dataLength, bool isThin)
+{
+    int min = 1000;
+    int max = -1;
+    int xScale = 16 * (1 + (dataLength - 1) / 16);
+    int xDivisor = 128 / xScale;
+    for (int i = 0; i < dataLength; ++i)
+    {
+        min = data[i] < min ? data[i] : min;
+        max = data[i] > max ? data[i] : max;
+    }
+    unsigned long int scaled[64] = {};
+    for (int i = 0; i < dataLength; ++i)
+    {
+        int value = (data[i] - min) * 31 / (max - min);
+        scaled[i] = ((1 << 32) - 1) - ((1 << (32 - value - 1)) - 1);
+    }
+    for (int i = dataLength; i < 16; i++)
+    {
+        scaled[i] = 0;
+    }
 
-void Graphics::titlePlot(const char *str1, unsigned char *data, char dataLength, bool isThin)
+    for (unsigned char page = 0; page < 4; page++)
+    {
+        for (byte col = 0; col < 128; ++col)
+        {
+            unsigned char columnValue;
+            if (isThin)
+            {
+                columnValue = col % xDivisor == (xDivisor / 2) ? (scaled[col / xDivisor] & (0xFF << (8 * page))) >> (8 * page) : 0;
+            }
+            else
+            {
+                columnValue = col % xDivisor == (xDivisor - 1) ? 0 : (scaled[col / xDivisor] & (0xFF << (8 * page))) >> (8 * page);
+            }
+            disp.dataBuffer[cursor++] = columnValue;
+        }
+    }
+}
+
+void Graphics::titlePlot(const char *str1, unsigned char *data, char dataLength, bool isThin, unsigned char selectionStart, unsigned char selectionEnd)
 {
     // strcpy(nextStrings[0], str1);
     cursor = 0;
-    blackLine();
     writeLine(str1);
     blackLine();
     plotGraph(data, dataLength, isThin);
+    selectionLine(selectionStart, selectionEnd, dataLength);
+    disp.putScreen();
+}
+void Graphics::titlePlot(const char *str1, int *data, char dataLength, bool isThin, unsigned char selectionStart, unsigned char selectionEnd)
+{
+    // strcpy(nextStrings[0], str1);
+    cursor = 0;
+    writeLine(str1);
+    blackLine();
+    plotGraph(data, dataLength, isThin);
+    selectionLine(selectionStart, selectionEnd, dataLength);
     disp.putScreen();
 }
 
@@ -134,5 +194,33 @@ void Graphics::buildTwoStringScreen(const char *str1, const char *str2)
     writeLine(str2);
     blackLine();
     blackLine();
+    disp.putScreen();
+}
+
+void Graphics::writePrettyLine()
+{
+    char circle[8] = {0xff, 0xc3, 0x99, 0xa5, 0xa5, 0x99, 0xc3, 0xff};
+    // char circle[8] = {0x3c, 0x42, 0x99, 0xa5, 0xa5, 0x99, 0x42, 0x3c};
+    for (unsigned char i = 0; i < 16; i++)
+    {
+        for (unsigned char j = 0; j < 8; j++)
+            disp.dataBuffer[cursor++] = circle[j];
+    }
+}
+
+void Graphics::buildSplash()
+{
+    cursor = 0;
+    writePrettyLine();
+    writePrettyLine();
+    // writePrettyLine();
+    blackLine();
+    // writePrettyLine();
+    // writePrettyLine();
+    writeLine("   ALINE   ");
+    blackLine();
+    // writePrettyLine();
+    writePrettyLine();
+    writePrettyLine();
     disp.putScreen();
 }

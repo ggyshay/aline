@@ -51,13 +51,17 @@ void Sequence::copySelection()
 {
     copySelectionStart = selectionStart;
     copySelectionEnd = selectionEnd;
+    for (unsigned char i = selectionStart; i <= selectionEnd; i++)
+    {
+        copyBuffer[i - selectionStart] = notes[i];
+    }
 }
 
 void Sequence::pasteToSelection()
 {
-    for (unsigned char i = copySelectionStart; i <= copySelectionEnd; ++i)
+    for (unsigned char i = 0; i <= copySelectionEnd - copySelectionStart; ++i)
     {
-        notes[selectionStart + i - copySelectionStart] = notes[i];
+        notes[selectionStart + i] = copyBuffer[i];
     }
 }
 

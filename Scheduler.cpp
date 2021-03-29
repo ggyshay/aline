@@ -11,14 +11,17 @@ void Scheduler::init()
 
 void Scheduler::sendNextNote()
 {
-    pendingNote = true;
     int length = *sequenceLength;
     currentNote = (currentNote + 1) % length;
     if (notes[currentNote].gate)
     {
+        if (pendingNote)
+            sendNoteOff();
         usbMIDI.sendNoteOn(notes[currentNote].pitch, notes[currentNote].velocity, 0);
+        txTimer.begin(handleNoteTimeout, 10 * sixteenth * notes[currentNote].duration);
+        pendingNote = true;
+        lastSentNote = notes[currentNote];
     }
-    lastSentNote = notes[currentNote];
 }
 
 void Scheduler::resetPosition()
@@ -41,8 +44,6 @@ void Scheduler::resetPosition()
 
 void Scheduler::internalHandleClock()
 {
-    if (pendingNote)
-        sendNoteOff();
     if (clocks == 0)
     {
         periodStart = millis();
@@ -51,7 +52,6 @@ void Scheduler::internalHandleClock()
     clocks++;
     // Serial.printf("clocks=%d sixteenth=%d delta=%d durationp=%d duration=%ld \n", clocks, sixteenth, millis() - periodStart, (int)notes[currentNote].duration, 10 * sixteenth * notes[currentNote].duration);
 
-    txTimer.begin(handleNoteTimeout, 10 * sixteenth * (int)notes[currentNote].duration);
     sendNextNote();
 }
 
@@ -67,8 +67,8 @@ void Scheduler::sendNoteOff()
     if (lastSentNote.gate)
     {
         usbMIDI.sendNoteOff(lastSentNote.pitch, lastSentNote.velocity, 0);
+        pendingNote = false;
     }
-    pendingNote = false;
 }
 
 void Scheduler::setClockSource(int i)
