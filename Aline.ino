@@ -86,6 +86,9 @@ void setup()
   interface.random_octaves = &sequence.currentOctaves;
   interface.onChangeClockSource = [](int i) -> void { scheduler.setClockSource(i); };
   interface.onChangeBPM = [](void) -> void { scheduler.onBPMChange(); };
+  interface.onActivateScaleLock = [](int i) -> void { sequence.setScaleLock(i); };
+  interface.onChangeScale = [](int i) -> void { sequence.setScale(i); };
+  interface.onChangeRoot = [](int i) -> void { sequence.setRootNote(i); };
   interface.BPM = &(scheduler.BPM);
   interface.setup();
   Serial.println("Interface setup done");

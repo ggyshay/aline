@@ -16,24 +16,72 @@ public:
         velocity = 100;
         gate = true;
     }
-    void pitchUp()
+    void pitchUp(bool isScaleLocked, int scale, int root)
     {
-        pitch++;
+        if (isScaleLocked)
+        {
+            char newPitch = pitch;
+            while (((scales[scale][(12 + (newPitch % 12) - (root % 12)) % 12] + root) % 12 + (newPitch / 12) * 12) == pitch)
+            {
+                newPitch++;
+            }
+            pitch = (scales[scale][(12 + (newPitch % 12) - (root % 12)) % 12] + root) % 12 + (newPitch / 12) * 12;
+        }
+        else
+        {
+            pitch++;
+        }
     }
 
-    void pitchDown()
+    void pitchDown(bool isScaleLocked, int scale, int root)
     {
-        pitch--;
+        if (isScaleLocked)
+        {
+            char newPitch = pitch;
+            while (((scales[scale][(12 + (newPitch % 12) - (root % 12)) % 12] + root) % 12 + (newPitch / 12) * 12) == pitch)
+            {
+                newPitch--;
+            }
+            pitch = (scales[scale][(12 + (newPitch % 12) - (root % 12)) % 12] + root) % 12 + (newPitch / 12) * 12;
+        }
+        else
+        {
+            pitch--;
+        }
     }
 
-    void octUp()
+    void octUp(bool isScaleLocked, int scale, int root)
     {
-        pitch += 12;
+        if (isScaleLocked)
+        {
+            char newPitch = pitch;
+            while (((scales[scale][(12 + (newPitch % 12) - (root % 12)) % 12] + root) % 12 + (newPitch / 12) * 12) == pitch)
+            {
+                newPitch += 12;
+            }
+            pitch = (scales[scale][(12 + (newPitch % 12) - (root % 12)) % 12] + root) % 12 + (newPitch / 12) * 12;
+        }
+        else
+        {
+            pitch += 12;
+        }
     }
 
-    void octDown()
+    void octDown(bool isScaleLocked, int scale, int root)
     {
-        pitch -= 12;
+        if (isScaleLocked)
+        {
+            char newPitch = pitch;
+            while (((scales[scale][(12 + (newPitch % 12) - (root % 12)) % 12] + root) % 12 + (newPitch / 12) * 12) == pitch)
+            {
+                newPitch -= 12;
+            }
+            pitch = (scales[scale][(12 + (newPitch % 12) - (root % 12)) % 12] + root) % 12 + (newPitch / 12) * 12;
+        }
+        else
+        {
+            pitch -= 12;
+        }
     }
 
     void durationUp()

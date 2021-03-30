@@ -96,6 +96,9 @@ public:
     std::function<void(void)> setOctavesDown = nullptr;
     std::function<void(int)> onChangeClockSource;
     std::function<void(void)> onChangeBPM;
+    std::function<void(int)> onActivateScaleLock;
+    std::function<void(int)> onChangeScale;
+    std::function<void(int)> onChangeRoot;
     void setup();
     void update();
     void renderSplash();

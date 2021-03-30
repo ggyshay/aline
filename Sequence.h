@@ -14,6 +14,9 @@ public:
     int currentSeed = 0;
     unsigned char currentRoot = 0;
     unsigned char currentOctaves = 1;
+    bool scaleLockMode = false;
+    int scale = 0;
+    int rootNote = 0;
     Note notes[64];
     Note copyBuffer[16];
     unsigned char sequenceLength = 16;
@@ -44,5 +47,8 @@ public:
     void setOctavesUp();
     void setOctavesDown();
     void randomize();
+    void setScaleLock(int);
+    void setScale(int);
+    void setRootNote(int);
 };
 #endif

@@ -262,6 +262,9 @@ void Interface::setup()
     menu.onMask = [this](std::vector<int> *stack) -> void { onMask((*stack)[1]); };
     menu.onChangeClockSource = [this](std::vector<int> *stack) -> void { onChangeClockSource((*stack)[2]); };
     menu.onChangeBPM = [this](std::vector<int> *stack) -> void { onChangeBPM(); };
+    menu.onActivateScaleLock = [this](std::vector<int> *stack) -> void { onActivateScaleLock((*stack)[2]); };
+    menu.onChangeScale = [this](std::vector<int> *stack) -> void { onChangeScale((*stack)[2]); };
+    menu.onChangeRoot = [this](std::vector<int> *stack) -> void { onChangeRoot((*stack)[2]); };
     menu.setBPMPointer(BPM);
     menu.init();
 }

@@ -19,7 +19,7 @@ void Sequence::selectionPitchUp()
 {
     for (unsigned char i = selectionStart; i <= selectionEnd; ++i)
     {
-        notes[i].pitchUp();
+        notes[i].pitchUp(scaleLockMode, scale, rootNote);
     }
 }
 
@@ -27,7 +27,7 @@ void Sequence::selectionPitchDown()
 {
     for (unsigned char i = selectionStart; i <= selectionEnd; ++i)
     {
-        notes[i].pitchDown();
+        notes[i].pitchDown(scaleLockMode, scale, rootNote);
     }
 }
 
@@ -35,7 +35,7 @@ void Sequence::selectionOctUp()
 {
     for (unsigned char i = selectionStart; i <= selectionEnd; ++i)
     {
-        notes[i].octUp();
+        notes[i].octUp(scaleLockMode, scale, rootNote);
     }
 }
 
@@ -43,7 +43,7 @@ void Sequence::selectionOctDown()
 {
     for (unsigned char i = selectionStart; i <= selectionEnd; ++i)
     {
-        notes[i].octDown();
+        notes[i].octDown(scaleLockMode, scale, rootNote);
     }
 }
 
@@ -187,6 +187,23 @@ void Sequence::setOctavesDown()
 {
     currentOctaves = currentOctaves - 1 <= 1 ? 1 : currentOctaves - 1;
     randomize();
+}
+
+void Sequence::setScaleLock(int i)
+{
+    scaleLockMode = i == 1;
+    // for (unsigned char i = 0; i < 64; ++i)
+    // {
+    //     notes[i].toScale(scaleLockMode, scale, rootNote);
+    // }
+}
+void Sequence::setScale(int i)
+{
+    scale = i;
+}
+void Sequence::setRootNote(int i)
+{
+    rootNote = i;
 }
 
 String Sequence::toString()

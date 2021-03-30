@@ -50,6 +50,8 @@ public:
 
     Screen *nextScreen()
     {
+        if (currentString >= nextScreens.size())
+            return nullptr;
         return nextScreens[currentString];
     }
 
@@ -97,6 +99,7 @@ public:
         Screen mainMenuScreen("MENU");
         mainMenuScreen.strings.push_back("BANKS");
         mainMenuScreen.strings.push_back("CLOCK");
+        mainMenuScreen.strings.push_back("SCALE LOCK");
 
         Screen loadSaveScreen("BANK");
         loadSaveScreen.strings.push_back("1");
@@ -124,21 +127,62 @@ public:
 
         Screen clockBPMScreen("CLK BPM", clockBPM);
 
+        Screen scaleLockScreen("SCALE LOCK");
+        scaleLockScreen.strings.push_back("ACTIVE");
+        scaleLockScreen.strings.push_back("SCALE");
+        scaleLockScreen.strings.push_back("ROOT");
+        scaleLockScreen.strings.push_back("BACK");
+
+        Screen scaleLockActiveScreen("ACTIVE");
+        scaleLockActiveScreen.strings.push_back("NO");
+        scaleLockActiveScreen.strings.push_back("YES");
+        scaleLockActiveScreen.strings.push_back("BACK");
+
+        Screen scaleScreen("SCALE");
+        scaleScreen.strings.push_back("IONIAN");
+        scaleScreen.strings.push_back("DORIAN");
+        scaleScreen.strings.push_back("PHRYGIAN");
+        scaleScreen.strings.push_back("LYDIAN");
+        scaleScreen.strings.push_back("MIXOLYDIAN");
+        scaleScreen.strings.push_back("AEOLIAN");
+        scaleScreen.strings.push_back("LOCRIAN");
+        scaleScreen.strings.push_back("BACK");
+
+        Screen rootNoteScreen("ROOT");
+        rootNoteScreen.strings.push_back("C");
+        rootNoteScreen.strings.push_back("C#");
+        rootNoteScreen.strings.push_back("D");
+        rootNoteScreen.strings.push_back("D#");
+        rootNoteScreen.strings.push_back("E");
+        rootNoteScreen.strings.push_back("F");
+        rootNoteScreen.strings.push_back("F#");
+        rootNoteScreen.strings.push_back("G");
+        rootNoteScreen.strings.push_back("G#");
+        rootNoteScreen.strings.push_back("A");
+        rootNoteScreen.strings.push_back("A#");
+        rootNoteScreen.strings.push_back("B");
+        rootNoteScreen.strings.push_back("BACK");
+
         screens.push_back(mainMenuScreen);          // 0
         screens.push_back(loadSaveScreen);          // 1
         screens.push_back(loadSaveOperationScreen); // 2
         screens.push_back(clockScreen);             // 3
         screens.push_back(clockSourceScreen);       // 4
         screens.push_back(clockBPMScreen);          // 5
+        screens.push_back(scaleLockScreen);         // 6
+        screens.push_back(scaleLockActiveScreen);   // 7
+        screens.push_back(scaleScreen);             // 8
+        screens.push_back(rootNoteScreen);          // 9
 
         currentScreen = &(screens[0]);
         rootScreen = &(screens[0]);
-        screens[0].nextScreens = {&(screens[1]), &(screens[3])};
+        screens[0].nextScreens = {&(screens[1]), &(screens[3]), &(screens[6])};
         screens[1].nextScreens = {&(screens[2]), &(screens[2]), &(screens[2]), &(screens[2]), &(screens[2]), &(screens[2]), &(screens[2]), &(screens[2])};
         screens[2].nextScreens = {nullptr, nullptr, nullptr, nullptr};
         screens[3].nextScreens = {&(screens[4]), &(screens[5])};
         screens[4].nextScreens = {nullptr, nullptr};
         screens[5].nextScreens = {nullptr, nullptr};
+        screens[6].nextScreens = {&(screens[7]), &(screens[8]), &(screens[9]), nullptr};
     }
     void init()
     {
@@ -148,6 +192,10 @@ public:
         screens[3].callbacks = {nullptr, nullptr};
         screens[4].callbacks = {onChangeClockSource, onChangeClockSource};
         screens[5].callbacks = {onChangeBPM};
+
+        screens[7].callbacks = {onActivateScaleLock, onActivateScaleLock, nullptr};
+        screens[8].callbacks = {onChangeScale, onChangeScale, onChangeScale, onChangeScale, onChangeScale, onChangeScale, onChangeScale, nullptr};
+        screens[9].callbacks = {onChangeRoot, onChangeRoot, onChangeRoot, onChangeRoot, onChangeRoot, onChangeRoot, onChangeRoot, onChangeRoot, onChangeRoot, onChangeRoot, onChangeRoot, onChangeRoot, nullptr};
     }
     void setGraphicsPointer(Graphics *_d)
     {
@@ -206,6 +254,9 @@ public:
     std::function<void(std::vector<int> *)> onMask;
     std::function<void(std::vector<int> *)> onChangeClockSource;
     std::function<void(std::vector<int> *)> onChangeBPM;
+    std::function<void(std::vector<int> *)> onActivateScaleLock;
+    std::function<void(std::vector<int> *)> onChangeScale;
+    std::function<void(std::vector<int> *)> onChangeRoot;
 };
 
 #endif
