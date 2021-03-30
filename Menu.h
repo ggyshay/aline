@@ -108,8 +108,8 @@ public:
         loadSaveScreen.strings.push_back("4");
         loadSaveScreen.strings.push_back("5");
         loadSaveScreen.strings.push_back("6");
-        loadSaveScreen.strings.push_back("7");
-        loadSaveScreen.strings.push_back("8");
+        // loadSaveScreen.strings.push_back("7");
+        // loadSaveScreen.strings.push_back("8");
 
         Screen loadSaveOperationScreen("ACTION");
         loadSaveOperationScreen.strings.push_back("LOAD");

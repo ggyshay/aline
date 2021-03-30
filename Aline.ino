@@ -35,9 +35,8 @@ void handleClock()
   if (clockCount == 0)
     scheduler.onClock();
 }
-void handleStart()
+void handleStop()
 {
-  scheduler.onStart();
   scheduler.resetPosition();
   clockCount = 0;
 }
@@ -98,7 +97,7 @@ void setup()
   scheduler.sequenceLength = &sequence.sequenceLength;
 
   usbMIDI.setHandleClock(handleClock);
-  usbMIDI.setHandleStart(handleStart);
+  usbMIDI.setHandleStop(handleStop);
   delay(500);
   interface.renderSplash();
   Serial.println("all setup complete");

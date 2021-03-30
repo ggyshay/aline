@@ -27,6 +27,7 @@ void Scheduler::sendNextNote()
 void Scheduler::resetPosition()
 {
     currentNote = 0;
+    clocks = 0;
 }
 
 // void Scheduler::updateSequence()
@@ -95,15 +96,4 @@ static void handleNoteTimeout()
 static void handleClockOuter()
 {
     scheduler.internalHandleClock();
-}
-
-// void Scheduler::onCrudeClock()
-// {
-
-// }
-
-void Scheduler::onStart()
-{
-    clocks = 0;
-    periodStart = millis();
 }

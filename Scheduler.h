@@ -25,7 +25,6 @@ public:
     // void updateSequence();
     void onClock();
     void onCrudeClock();
-    void onStart();
     void setClockSource(int i);
     void onBPMChange();
     void internalHandleClock();

@@ -64,7 +64,7 @@ public:
     Note *notes;
     unsigned char *random_root;
     unsigned char *random_scale;
-    int *random_seed;
+    char *random_seed;
     unsigned char *random_octaves;
     float *BPM;
     std::function<void(void)> onLengthUp = nullptr;

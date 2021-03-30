@@ -5,8 +5,8 @@
 class Note
 {
 public:
-    char pitch = 36;
     int duration = 80;
+    char pitch = 36;
     char velocity = 100;
     bool gate = true;
     void reset()
@@ -21,11 +21,11 @@ public:
         if (isScaleLocked)
         {
             char newPitch = pitch;
-            while (((scales[scale][(12 + (newPitch % 12) - (root % 12)) % 12] + root) % 12 + (newPitch / 12) * 12) == pitch)
+            while (((scales[scale][(12 + newPitch - root) % 12] + root) % 12 + (newPitch / 12) * 12) == pitch)
             {
                 newPitch++;
             }
-            pitch = (scales[scale][(12 + (newPitch % 12) - (root % 12)) % 12] + root) % 12 + (newPitch / 12) * 12;
+            pitch = (scales[scale][(12 + newPitch - root) % 12] + root) % 12 + (newPitch / 12) * 12;
         }
         else
         {
@@ -38,11 +38,11 @@ public:
         if (isScaleLocked)
         {
             char newPitch = pitch;
-            while (((scales[scale][(12 + (newPitch % 12) - (root % 12)) % 12] + root) % 12 + (newPitch / 12) * 12) == pitch)
+            while (((scales[scale][(12 + newPitch - root) % 12] + root) % 12 + (newPitch / 12) * 12) == pitch)
             {
                 newPitch--;
             }
-            pitch = (scales[scale][(12 + (newPitch % 12) - (root % 12)) % 12] + root) % 12 + (newPitch / 12) * 12;
+            pitch = (scales[scale][(12 + newPitch - root) % 12] + root) % 12 + (newPitch / 12) * 12;
         }
         else
         {
@@ -55,11 +55,11 @@ public:
         if (isScaleLocked)
         {
             char newPitch = pitch;
-            while (((scales[scale][(12 + (newPitch % 12) - (root % 12)) % 12] + root) % 12 + (newPitch / 12) * 12) == pitch)
+            while (((scales[scale][(12 + newPitch - root) % 12] + root) % 12 + (newPitch / 12) * 12) == pitch)
             {
                 newPitch += 12;
             }
-            pitch = (scales[scale][(12 + (newPitch % 12) - (root % 12)) % 12] + root) % 12 + (newPitch / 12) * 12;
+            pitch = (scales[scale][(12 + newPitch - root) % 12] + root) % 12 + (newPitch / 12) * 12;
         }
         else
         {
@@ -72,11 +72,11 @@ public:
         if (isScaleLocked)
         {
             char newPitch = pitch;
-            while (((scales[scale][(12 + (newPitch % 12) - (root % 12)) % 12] + root) % 12 + (newPitch / 12) * 12) == pitch)
+            while (((scales[scale][(12 + newPitch - root) % 12] + root) % 12 + (newPitch / 12) * 12) == pitch)
             {
                 newPitch -= 12;
             }
-            pitch = (scales[scale][(12 + (newPitch % 12) - (root % 12)) % 12] + root) % 12 + (newPitch / 12) * 12;
+            pitch = (scales[scale][(12 + newPitch - root) % 12] + root) % 12 + (newPitch / 12) * 12;
         }
         else
         {

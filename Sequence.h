@@ -11,15 +11,15 @@ private:
 
 public:
     unsigned char currentScale = 0;
-    int currentSeed = 0;
     unsigned char currentRoot = 0;
     unsigned char currentOctaves = 1;
+    unsigned char sequenceLength = 16;
+    char currentSeed = 0;
+    char scale = 0;
+    char rootNote = 0;
     bool scaleLockMode = false;
-    int scale = 0;
-    int rootNote = 0;
     Note notes[64];
     Note copyBuffer[16];
-    unsigned char sequenceLength = 16;
     void setSequenceLengthUp();
     void setSequenceLengthDown();
     void setSelection(char start, char end);
