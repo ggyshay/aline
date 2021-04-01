@@ -67,45 +67,77 @@ void Interface::detectCommands()
     }
     if (pressedAuxButtons[3])
     {
+        onEase();
+        changeWriteMode(LED_SELECTION_MODE, DISPLAY_VELOCITY_MODE);
+        pressedAuxButtons[3] = 0;
+    }
+    if (pressedAuxButtons[4])
+    {
         if (pressedAuxButtons[0])
         {
-            onErase();
+            lastSelectionChange = millis();
             onSelectionChange(0, 15);
             selectionStart = 0;
             selectionEnd = 15;
-            // for (char i = 0; i < 16; i++)
-            // {
-            //     gateButtons[i] = true;
-            // }
             changeWriteMode(LED_SELECTION_MODE, DISPLAY_SELECTION_MODE);
         }
-        else
+        else if (currentPage != 0)
         {
-            onEase();
-            changeWriteMode(LED_SELECTION_MODE, DISPLAY_VELOCITY_MODE);
+            currentPage = 0;
+            updatePageContext();
         }
-
-        pressedAuxButtons[3] = 0;
+        pressedAuxButtons[4] = false;
     }
-    if (pressedAuxButtons[4] && currentPage != 0)
+    if (pressedAuxButtons[5])
     {
-        currentPage = 0;
-        updatePageContext();
+        if (pressedAuxButtons[0])
+        {
+            lastSelectionChange = millis();
+            onSelectionChange(0, 31);
+            selectionStart = 0;
+            selectionEnd = 31;
+            changeWriteMode(LED_SELECTION_MODE, DISPLAY_SELECTION_MODE);
+        }
+        else if (currentPage != 1)
+        {
+            currentPage = 1;
+            updatePageContext();
+        }
+        pressedAuxButtons[5] = false;
     }
-    if (pressedAuxButtons[5] && currentPage != 1)
+    if (pressedAuxButtons[6])
     {
-        currentPage = 1;
-        updatePageContext();
+        if (pressedAuxButtons[0])
+        {
+            lastSelectionChange = millis();
+            onSelectionChange(0, 47);
+            selectionStart = 0;
+            selectionEnd = 47;
+            changeWriteMode(LED_SELECTION_MODE, DISPLAY_SELECTION_MODE);
+        }
+        else if (currentPage != 2)
+        {
+            currentPage = 2;
+            updatePageContext();
+        }
+        pressedAuxButtons[6] = false;
     }
-    if (pressedAuxButtons[6] && currentPage != 2)
+    if (pressedAuxButtons[7])
     {
-        currentPage = 2;
-        updatePageContext();
-    }
-    if (pressedAuxButtons[7] && currentPage != 3)
-    {
-        currentPage = 3;
-        updatePageContext();
+        if (pressedAuxButtons[0])
+        {
+            lastSelectionChange = millis();
+            onSelectionChange(0, 63);
+            selectionStart = 0;
+            selectionEnd = 63;
+            changeWriteMode(LED_SELECTION_MODE, DISPLAY_SELECTION_MODE);
+        }
+        else if (currentPage != 3)
+        {
+            currentPage = 3;
+            updatePageContext();
+        }
+        pressedAuxButtons[7] = false;
     }
 }
 
@@ -265,6 +297,13 @@ void Interface::setup()
     menu.onActivateScaleLock = [this](std::vector<int> *stack) -> void { onActivateScaleLock((*stack)[2]); };
     menu.onChangeScale = [this](std::vector<int> *stack) -> void { onChangeScale((*stack)[2]); };
     menu.onChangeRoot = [this](std::vector<int> *stack) -> void { onChangeRoot((*stack)[2]); };
+    menu.onErase = [this](std::vector<int> *stack) -> void {
+        onErase();
+        onSelectionChange(0, 15);
+        selectionStart = 0;
+        selectionEnd = 15;
+        changeWriteMode(LED_SELECTION_MODE, DISPLAY_SELECTION_MODE);
+    };
     menu.setBPMPointer(BPM);
     menu.init();
 }
