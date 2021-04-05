@@ -237,7 +237,6 @@ public:
     {
         int m = currentScreen->currentString;
         paramterStack.push_back(m);
-        // printStack();
         currentScreen->onClick(&paramterStack);
         Screen *nextScreen;
         if (currentScreen->nextScreen() == nullptr)

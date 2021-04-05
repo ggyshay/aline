@@ -97,7 +97,6 @@ void setup()
   interface.setup();
   Serial.println("Interface setup done");
 
-  scheduler.init();
   scheduler.notes = sequence.notes;
   scheduler.sequenceLength = &sequence.sequenceLength;
   scheduler.pagesLength = sequence.pagesLength;

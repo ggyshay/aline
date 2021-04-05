@@ -19,7 +19,6 @@ private:
     IntervalTimer txTimer;
     IntervalTimer internalClockTimer;
     bool usignInternalClock = false;
-    bool pendingNote = false;
     void scheduleNoteOffBuffer();
     void sendPendingNoteOffs();
     void deleteFutureNoteOff(char pitch, char velocity, char channel);
@@ -28,7 +27,6 @@ public:
     bool multiMode = false;
     int currentNote = 0;
     int sixteenth = 120;
-    Note lastSentNote;
     Note *notes;
     int clocks = 0;
     long unsigned int periodStart = 0;
@@ -37,8 +35,6 @@ public:
     unsigned char currentPageNote[4] = {0, 0, 0, 0};
     std::vector<NoteOffEvt> noteOffBuffer;
     void sendNextNote();
-    void sendNoteOff();
-    void init();
     void resetPosition();
     // void updateSequence();
     void onClock();
