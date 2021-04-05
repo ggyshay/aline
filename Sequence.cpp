@@ -47,7 +47,7 @@ void Sequence::selectionOctDown()
     }
 }
 
-void Sequence::copySelection()
+void Sequence::copySelection(Note *copyBuffer)
 {
     copySelectionStart = selectionStart;
     copySelectionEnd = selectionEnd;
@@ -57,7 +57,7 @@ void Sequence::copySelection()
     }
 }
 
-void Sequence::pasteToSelection()
+void Sequence::pasteToSelection(Note *copyBuffer)
 {
     for (unsigned char i = 0; i <= copySelectionEnd - copySelectionStart; ++i)
     {

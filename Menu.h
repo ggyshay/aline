@@ -101,6 +101,7 @@ public:
         mainMenuScreen.strings.push_back("CLOCK");
         mainMenuScreen.strings.push_back("SCALE LOCK");
         mainMenuScreen.strings.push_back("RESET");
+        mainMenuScreen.strings.push_back("SEQUENCE MODE");
 
         Screen loadSaveScreen("BANK");
         loadSaveScreen.strings.push_back("1");
@@ -168,6 +169,10 @@ public:
         resetScreen.strings.push_back("RESET");
         resetScreen.strings.push_back("BACK");
 
+        Screen sequenceModeScreen("SEQUENCE MODE");
+        sequenceModeScreen.strings.push_back("MONO");
+        sequenceModeScreen.strings.push_back("MULTI");
+
         screens.push_back(mainMenuScreen);          // 0
         screens.push_back(loadSaveScreen);          // 1
         screens.push_back(loadSaveOperationScreen); // 2
@@ -179,10 +184,11 @@ public:
         screens.push_back(scaleScreen);             // 8
         screens.push_back(rootNoteScreen);          // 9
         screens.push_back(resetScreen);             // 10
+        screens.push_back(sequenceModeScreen);      // 11
 
         currentScreen = &(screens[0]);
         rootScreen = &(screens[0]);
-        screens[0].nextScreens = {&(screens[1]), &(screens[3]), &(screens[6]), &(screens[10])};
+        screens[0].nextScreens = {&(screens[1]), &(screens[3]), &(screens[6]), &(screens[10]), &(screens[11])};
         screens[1].nextScreens = {&(screens[2]), &(screens[2]), &(screens[2]), &(screens[2]), &(screens[2]), &(screens[2]), &(screens[2]), &(screens[2])};
         screens[2].nextScreens = {nullptr, nullptr, nullptr, nullptr};
         screens[3].nextScreens = {&(screens[4]), &(screens[5])};
@@ -203,6 +209,7 @@ public:
         screens[8].callbacks = {onChangeScale, onChangeScale, onChangeScale, onChangeScale, onChangeScale, onChangeScale, onChangeScale, nullptr};
         screens[9].callbacks = {onChangeRoot, onChangeRoot, onChangeRoot, onChangeRoot, onChangeRoot, onChangeRoot, onChangeRoot, onChangeRoot, onChangeRoot, onChangeRoot, onChangeRoot, onChangeRoot, nullptr};
         screens[10].callbacks = {onErase, nullptr};
+        screens[11].callbacks = {onChangeSequenceMode, onChangeSequenceMode};
     }
     void setGraphicsPointer(Graphics *_d)
     {
@@ -264,6 +271,7 @@ public:
     std::function<void(std::vector<int> *)> onActivateScaleLock;
     std::function<void(std::vector<int> *)> onChangeScale;
     std::function<void(std::vector<int> *)> onChangeRoot;
+    std::function<void(std::vector<int> *)> onChangeSequenceMode;
     std::function<void(std::vector<int> *stack)> onErase = nullptr;
 };
 

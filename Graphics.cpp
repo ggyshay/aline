@@ -179,14 +179,6 @@ void Graphics::titlePlot(const char *str1, int *data, char dataLength, bool isTh
 
 void Graphics::buildTwoStringScreen(const char *str1, const char *str2)
 {
-    //         char f[9]; // FOR THE FLOAT METHOD
-    // snprintf(f, 9, "%.2f", str2);
-    // strcpy(nextStrings[0], str1);
-    // strcpy(nextStrings[1], f);
-    // triggerTransmission();
-    // strcpy(nextStrings[0], str1);
-    // strcpy(nextStrings[1], str2);
-
     cursor = 0;
     blackLine();
     writeLine(str1);
@@ -222,5 +214,14 @@ void Graphics::buildSplash()
     // writePrettyLine();
     writePrettyLine();
     writePrettyLine();
+    disp.putScreen();
+}
+
+void Graphics::beginSession()
+{
+    cursor = 0;
+}
+void Graphics::endSession()
+{
     disp.putScreen();
 }

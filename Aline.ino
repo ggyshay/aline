@@ -10,7 +10,7 @@
 #include "Interface.h"
 #include "Scheduler.h"
 #include "StateManager.h"
-
+Note copyBuffer[64];
 namespace std
 {
   void __throw_bad_alloc();
@@ -53,8 +53,8 @@ void setup()
   interface.onPitchDown = []() -> void { sequence.selectionPitchDown(); };
   interface.onOctUp = []() -> void { sequence.selectionOctUp(); };
   interface.onOctDown = []() -> void { sequence.selectionOctDown(); };
-  interface.onCopy = []() -> void { sequence.copySelection(); };
-  interface.onPaste = []() -> void { sequence.pasteToSelection(); };
+  interface.onCopy = []() -> void { sequence.copySelection(copyBuffer); };
+  interface.onPaste = []() -> void { sequence.pasteToSelection(copyBuffer); };
   interface.onDurationUp = []() -> void { sequence.setSelectionDurationUp(); };
   interface.onDurationDown = []() -> void { sequence.setSelectionDurationDown(); };
   interface.onVelocityUp = []() -> void { sequence.setSelectionVelocityUp(); };
@@ -88,6 +88,11 @@ void setup()
   interface.onActivateScaleLock = [](int i) -> void { sequence.setScaleLock(i); };
   interface.onChangeScale = [](int i) -> void { sequence.setScale(i); };
   interface.onChangeRoot = [](int i) -> void { sequence.setRootNote(i); };
+  interface.onChangeSequenceMode = [](int i) -> void {
+    sequence.multiMode = i == 1;
+    scheduler.multiMode = i == 1;
+  };
+
   interface.BPM = &(scheduler.BPM);
   interface.setup();
   Serial.println("Interface setup done");
@@ -95,6 +100,8 @@ void setup()
   scheduler.init();
   scheduler.notes = sequence.notes;
   scheduler.sequenceLength = &sequence.sequenceLength;
+  scheduler.pagesLength = sequence.pagesLength;
+  interface.pagesLength = sequence.pagesLength;
 
   usbMIDI.setHandleClock(handleClock);
   usbMIDI.setHandleStop(handleStop);

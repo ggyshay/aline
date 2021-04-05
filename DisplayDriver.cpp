@@ -1,4 +1,46 @@
 #include "DisplayDriver.h"
+void print_i2c_status(void)
+{
+    switch (Wire1.status())
+    {
+    case I2C_WAITING:
+        // Serial.print("I2C waiting, no errors\n");
+        break;
+    case I2C_ADDR_NAK:
+        Serial.print("Slave addr not acknowledged\n");
+        break;
+    case I2C_DATA_NAK:
+        Serial.print("Slave data not acknowledged\n");
+        break;
+    case I2C_ARB_LOST:
+        Serial.print("Bus Error: Arbitration Lost\n");
+        break;
+    case I2C_TIMEOUT:
+        Serial.print("I2C timeout\n");
+        break;
+    case I2C_BUF_OVF:
+        Serial.print("I2C buffer overflow\n");
+        break;
+    case I2C_NOT_ACQ:
+        Serial.print("I2C: Not acq\n");
+        break;
+    case I2C_DMA_ERR:
+        Serial.print("DMA error\b");
+        break;
+    case I2C_SENDING:
+        Serial.println("i2c sending");
+        break;
+    case I2C_SEND_ADDR:
+        Serial.println("i2c send addr");
+        break;
+    case I2C_RECEIVING:
+        Serial.println("i2c recieving");
+        break;
+    default:
+        Serial.print("I2C busy\n");
+        break;
+    }
+}
 
 char DisplayDriver::dataBuffer[1024] = {};
 bool DisplayDriver::pendingTransmission = false;
@@ -69,6 +111,7 @@ void DisplayDriver::triggerTransmission()
     }
     else if (!Wire.done() && micros() - lastTransmit > 125000)
     {
+        print_i2c_status();
         Serial.printf("stuck for %d micros\n", micros() - lastTransmit);
         Wire.resetBus();
     }

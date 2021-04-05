@@ -1,5 +1,16 @@
 #include "Interface.h"
 
+void getMinMaxNotes(Note *notes, std::function<unsigned char(Note n)> extractor, Note *minNote, Note *maxNote, unsigned char start, unsigned char end)
+{
+    *minNote = notes[start];
+    *maxNote = notes[start];
+    for (unsigned char i = start + 1; i <= end; i++)
+    {
+        *minNote = extractor(notes[i]) < extractor(*minNote) ? notes[i] : *minNote;
+        *maxNote = extractor(notes[i]) > extractor(*maxNote) ? notes[i] : *maxNote;
+    }
+}
+
 void Interface::detectSelecion()
 {
     int newSelectionStart = 1000;
@@ -13,9 +24,7 @@ void Interface::detectSelecion()
     }
 
     if ((newSelectionEnd == -1) && (newSelectionStart == 1000))
-    {
         return;
-    }
 
     if ((newSelectionStart != selectionStart) || (newSelectionEnd != selectionEnd))
     {
@@ -79,13 +88,13 @@ void Interface::detectCommands()
             onSelectionChange(0, 15);
             selectionStart = 0;
             selectionEnd = 15;
-            changeWriteMode(LED_SELECTION_MODE, DISPLAY_SELECTION_MODE);
         }
         else if (currentPage != 0)
         {
             currentPage = 0;
             updatePageContext();
         }
+        changeWriteMode(LED_SELECTION_MODE, DISPLAY_SELECTION_MODE);
         pressedAuxButtons[4] = false;
     }
     if (pressedAuxButtons[5])
@@ -96,13 +105,13 @@ void Interface::detectCommands()
             onSelectionChange(0, 31);
             selectionStart = 0;
             selectionEnd = 31;
-            changeWriteMode(LED_SELECTION_MODE, DISPLAY_SELECTION_MODE);
         }
         else if (currentPage != 1)
         {
             currentPage = 1;
             updatePageContext();
         }
+        changeWriteMode(LED_SELECTION_MODE, DISPLAY_SELECTION_MODE);
         pressedAuxButtons[5] = false;
     }
     if (pressedAuxButtons[6])
@@ -113,13 +122,13 @@ void Interface::detectCommands()
             onSelectionChange(0, 47);
             selectionStart = 0;
             selectionEnd = 47;
-            changeWriteMode(LED_SELECTION_MODE, DISPLAY_SELECTION_MODE);
         }
         else if (currentPage != 2)
         {
             currentPage = 2;
             updatePageContext();
         }
+        changeWriteMode(LED_SELECTION_MODE, DISPLAY_SELECTION_MODE);
         pressedAuxButtons[6] = false;
     }
     if (pressedAuxButtons[7])
@@ -130,13 +139,13 @@ void Interface::detectCommands()
             onSelectionChange(0, 63);
             selectionStart = 0;
             selectionEnd = 63;
-            changeWriteMode(LED_SELECTION_MODE, DISPLAY_SELECTION_MODE);
         }
         else if (currentPage != 3)
         {
             currentPage = 3;
             updatePageContext();
         }
+        changeWriteMode(LED_SELECTION_MODE, DISPLAY_SELECTION_MODE);
         pressedAuxButtons[7] = false;
     }
 }
@@ -178,6 +187,11 @@ void Interface::setupEncodersCallbacks()
             setScaleUp();
             changeWriteMode(LED_SELECTION_MODE, DISPLAY_RANDOM_SCALE_MODE);
         }
+        else if (multiMode)
+        {
+            pagesLength[currentPage] = pagesLength[currentPage] + 1 > 16 ? 16 : pagesLength[currentPage] + 1;
+            changeWriteMode(LED_LENGTH_MODE, DISPLAY_LENGTH_MODE);
+        }
         else
         {
             onLengthUp();
@@ -189,6 +203,11 @@ void Interface::setupEncodersCallbacks()
         {
             setScaleDown();
             changeWriteMode(LED_SELECTION_MODE, DISPLAY_RANDOM_SCALE_MODE);
+        }
+        else if (multiMode)
+        {
+            pagesLength[currentPage] = pagesLength[currentPage] - 1 < 1 ? 1 : pagesLength[currentPage] - 1;
+            changeWriteMode(LED_LENGTH_MODE, DISPLAY_LENGTH_MODE);
         }
         else
         {
@@ -304,8 +323,18 @@ void Interface::setup()
         selectionEnd = 15;
         changeWriteMode(LED_SELECTION_MODE, DISPLAY_SELECTION_MODE);
     };
+    menu.onChangeSequenceMode = [this](std::vector<int> *stack) -> void { onChangeSequenceMode((*stack)[1]); multiMode = (*stack)[1] == 1; };
     menu.setBPMPointer(BPM);
     menu.init();
+}
+
+void Interface::drawSequenceGraph()
+{
+    unsigned char pitches[64];
+    unsigned char length = multiMode ? pagesLength[currentPage] : *sequenceLength;
+    for (unsigned char i = 0; i < *sequenceLength; i++)
+        pitches[i] = multiMode ? notes[16 * currentPage + i].pitch : notes[i].pitch;
+    disp.plotGraph(pitches, length, false);
 }
 
 void Interface::renderSplash()
@@ -315,78 +344,69 @@ void Interface::renderSplash()
 
 void Interface::printSequenceMode()
 {
-    Note minNote = notes[0];
-    Note maxNote = notes[0];
-    for (unsigned char i = 0; i <= *sequenceLength; i++)
-    {
-        minNote = notes[i].pitch < minNote.pitch ? notes[i] : minNote;
-        maxNote = notes[i].pitch > maxNote.pitch ? notes[i] : maxNote;
-    }
-    Note minSelectionNote = notes[selectionStart];
-    Note maxSelectionNote = notes[selectionStart];
+    unsigned char pitches[64] = {};
+    unsigned char length = 0;
+    Note minSelectionNote;
+    Note maxSelectionNote;
+    minSelectionNote = notes[selectionStart];
+    maxSelectionNote = notes[selectionStart];
     for (unsigned char i = selectionStart; i <= selectionEnd; i++)
     {
         minSelectionNote = notes[i].pitch < minSelectionNote.pitch ? notes[i] : minSelectionNote;
         maxSelectionNote = notes[i].pitch > maxSelectionNote.pitch ? notes[i] : maxSelectionNote;
     }
-    unsigned char pitches[64] = {};
-    for (unsigned char i = 0; i < *sequenceLength; i++)
+    if (multiMode)
     {
-        pitches[i] = notes[i].pitch;
-    }
-    if (selectionStart == selectionEnd)
-    {
-        String upperLine = "NOTE " + minSelectionNote.toString();
-        disp.titlePlot(upperLine.c_str(), pitches, *sequenceLength, false, selectionStart, selectionEnd);
+        length = pagesLength[currentPage];
+        for (unsigned char i = 0; i < length; i++)
+        {
+            pitches[i] = notes[i + 16 * currentPage].pitch;
+        }
+        String upperLine;
+        if (selectionStart == selectionEnd)
+            upperLine = "NOTE " + minSelectionNote.toString();
+        else
+            upperLine = minSelectionNote.toString() + " TO " + maxSelectionNote.toString();
+
+        disp.titlePlot(upperLine.c_str(), pitches, length, false, selectionStart, selectionEnd);
     }
     else
     {
-        String upperLine = minSelectionNote.toString() + " TO " + maxSelectionNote.toString();
-        disp.titlePlot(upperLine.c_str(), pitches, *sequenceLength, false, selectionStart, selectionEnd);
+        disp.beginSession();
+        String upperLine;
+        if (selectionStart == selectionEnd)
+        {
+            upperLine = "NOTE " + minSelectionNote.toString();
+        }
+        else
+        {
+            upperLine = minSelectionNote.toString() + " TO " + maxSelectionNote.toString();
+        }
+        disp.writeLine(upperLine.c_str());
+        disp.blackLine();
+        drawSequenceGraph();
+        disp.selectionLine(selectionStart, selectionEnd, *sequenceLength);
+        disp.endSession();
     }
 }
 void Interface::printLengthMode()
 {
-    Note minNote = notes[0];
-    Note maxNote = notes[0];
-    for (unsigned char i = 0; i <= *sequenceLength; i++)
-    {
-        minNote = notes[i].pitch < minNote.pitch ? notes[i] : minNote;
-        maxNote = notes[i].pitch > maxNote.pitch ? notes[i] : maxNote;
-    }
-    Note minSelectionNote = notes[selectionStart];
-    Note maxSelectionNote = notes[selectionStart];
-    for (unsigned char i = selectionStart; i <= selectionEnd; i++)
-    {
-        minSelectionNote = notes[i].pitch < minSelectionNote.pitch ? notes[i] : minSelectionNote;
-        maxSelectionNote = notes[i].pitch > maxSelectionNote.pitch ? notes[i] : maxSelectionNote;
-    }
-    unsigned char pitches[64] = {};
-    for (unsigned char i = 0; i < *sequenceLength; i++)
-    {
-        pitches[i] = notes[i].pitch;
-    }
-    if (selectionStart == selectionEnd)
-    {
-        String upperLine = "LENGTH " + String((int)*sequenceLength);
-        disp.titlePlot(upperLine.c_str(), pitches, *sequenceLength, false, selectionStart, selectionEnd);
-    }
-    else
-    {
-        String upperLine = "LENGTH " + String((int)*sequenceLength);
-        disp.titlePlot(upperLine.c_str(), pitches, *sequenceLength, false, selectionStart, selectionEnd);
-    }
+    disp.beginSession();
+    unsigned char length = multiMode ? pagesLength[currentPage] : *sequenceLength;
+    String upperLine = "LENGTH " + String((int)length);
+    disp.writeLine(upperLine.c_str());
+    disp.blackLine();
+    drawSequenceGraph();
+    disp.selectionLine(selectionStart, selectionEnd, length);
+    disp.endSession();
 }
 
 void Interface::printVelocityMode()
 {
-    Note minNote = notes[selectionStart];
-    Note maxNote = notes[selectionStart];
-    for (unsigned char i = selectionStart + 1; i <= selectionEnd; i++)
-    {
-        minNote = notes[i].velocity < minNote.velocity ? notes[i] : minNote;
-        maxNote = notes[i].velocity > maxNote.velocity ? notes[i] : maxNote;
-    }
+    Note minNote, maxNote;
+    getMinMaxNotes(
+        notes, [](Note n) -> unsigned char { return n.velocity; }, &minNote, &maxNote, selectionStart, selectionEnd);
+
     unsigned char velocities[64] = {};
     for (unsigned char i = 0; i < *sequenceLength; i++)
     {
@@ -405,77 +425,62 @@ void Interface::printVelocityMode()
 }
 void Interface::printDurationMode()
 {
-    Note minNote = notes[selectionStart];
-    Note maxNote = notes[selectionStart];
-    for (unsigned char i = selectionStart + 1; i <= selectionEnd; i++)
-    {
-        minNote = notes[i].duration < minNote.duration ? notes[i] : minNote;
-        maxNote = notes[i].duration > maxNote.duration ? notes[i] : maxNote;
-    }
+    Note minNote, maxNote;
+    getMinMaxNotes(
+        notes, [](Note n) -> unsigned char { return n.duration; }, &minNote, &maxNote, selectionStart, selectionEnd);
+
     int durations[64] = {};
     for (unsigned char i = 0; i < *sequenceLength; i++)
-    {
         durations[i] = notes[i].duration;
-    }
+
+    String upperLine;
     if (selectionStart == selectionEnd)
     {
-        String upperLine = "DURATION " + String(minNote.duration);
-        disp.titlePlot(upperLine.c_str(), durations, *sequenceLength, true, selectionStart, selectionEnd);
+        upperLine = "DURATION " + String(minNote.duration);
     }
     else
     {
-        String upperLine = String(minNote.duration) + " TO " + String(maxNote.duration);
-        disp.titlePlot(upperLine.c_str(), durations, *sequenceLength, true, selectionStart, selectionEnd);
+        upperLine = String(minNote.duration) + " TO " + String(maxNote.duration);
     }
+    disp.titlePlot(upperLine.c_str(), durations, *sequenceLength, true, selectionStart, selectionEnd);
 }
 
 void Interface::writeToDisplay()
 {
-    if (displayMode == DISPLAY_SELECTION_MODE)
+
+    switch (displayMode)
     {
+    case DISPLAY_SELECTION_MODE:
         printSequenceMode();
-    }
-    else if (displayMode == DISPLAY_VELOCITY_MODE)
-    {
+        break;
+    case DISPLAY_VELOCITY_MODE:
         printVelocityMode();
-    }
-    else if (displayMode == DISPLAY_DURATION_MODE)
-    {
+        break;
+    case DISPLAY_DURATION_MODE:
         printDurationMode();
-    }
-    else if (displayMode == DISPLAY_GATE_MODE)
-    {
-
+        break;
+    case DISPLAY_GATE_MODE:
         disp.buildTwoStringScreen("GATE MODE", " ");
-    }
-    else if (displayMode == DISPLAY_LENGTH_MODE)
-    {
+        break;
+    case DISPLAY_LENGTH_MODE:
         printLengthMode();
-    }
-    else if (displayMode == DISPLAY_RANDOM_ROOT_MODE)
-    {
-
+        break;
+    case DISPLAY_RANDOM_ROOT_MODE:
         disp.buildTwoStringScreen("R ROOT", noteName[*random_root].c_str());
-    }
-    else if (displayMode == DISPLAY_RANDOM_SCALE_MODE)
-    {
-
+        break;
+    case DISPLAY_RANDOM_SCALE_MODE:
         disp.buildTwoStringScreen("R SCALE", scaleNames[*random_scale].c_str());
-    }
-    else if (displayMode == DISPLAY_RANDOM_SEED_MODE)
-    {
-        disp.buildTwoStringScreen("R SEED", String(*random_seed).c_str());
-    }
-    else if (displayMode == DISPLAY_RANDOM_OCTAVES_MODE)
-    {
-
+        break;
+    case DISPLAY_RANDOM_SEED_MODE:
+        disp.buildTwoStringScreen("R SEED", String((int)*random_seed).c_str());
+        break;
+    case DISPLAY_RANDOM_OCTAVES_MODE:
         disp.buildTwoStringScreen("R OCTAVES", String(*random_octaves).c_str());
+        break;
+    default:
+        break;
     }
 }
-#define DISPLAY_RANDOM_ROOT_MODE 5
-#define DISPLAY_RANDOM_SCALE_MODE 6
-#define DISPLAY_RANDOM_SEED_MODE 7
-#define DISPLAY_RANDOM_OCTAVES_MODE 8
 
 void Interface::changeWriteMode(int newMode, int newDisplayMode)
 {
@@ -502,7 +507,14 @@ void Interface::writeLedModes(unsigned char i)
             writeLed(((i + 16 * currentPage) >= selectionStart) && ((i + 16 * currentPage) <= selectionEnd));
             break;
         case LED_LENGTH_MODE:
-            writeLed((i + 16 * currentPage) < (*sequenceLength));
+            if (multiMode)
+            {
+                writeLed((i) < (pagesLength[currentPage]));
+            }
+            else
+            {
+                writeLed((i + 16 * currentPage) < (*sequenceLength));
+            }
             break;
         default:
             break;
@@ -520,7 +532,6 @@ void Interface::update()
     {
         sendBits(i);
         writeLedModes(i);
-        //le botoes
         buttons[i]->setReading(getButtons());
         if (i < 8)
         {
@@ -529,7 +540,6 @@ void Interface::update()
 
         if (i < 5)
         {
-
             encoders[i].setReading(getEncodersA(), getEncodersB(), getEncodersC());
         }
         delayMicroseconds(100);

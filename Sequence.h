@@ -18,8 +18,9 @@ public:
     char scale = 0;
     char rootNote = 0;
     bool scaleLockMode = false;
+    char pagesLength[4] = {16, 16, 16, 16};
     Note notes[64];
-    Note copyBuffer[16];
+    bool multiMode = false;
     void setSequenceLengthUp();
     void setSequenceLengthDown();
     void setSelection(char start, char end);
@@ -27,8 +28,8 @@ public:
     void selectionPitchDown();
     void selectionOctUp();
     void selectionOctDown();
-    void copySelection();
-    void pasteToSelection();
+    void copySelection(Note *copyBuffer);
+    void pasteToSelection(Note *copyBuffer);
     void setSelectionDurationUp();
     void setSelectionDurationDown();
     void setSelectionVelocityUp();

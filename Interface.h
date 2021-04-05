@@ -36,6 +36,7 @@ private:
     bool pressedButtons[16];
     bool gateMode = false;
     bool randomMode = false;
+    bool multiMode = false;
     unsigned char currentPage = 0;
     bool pressedAuxButtons[8];
     unsigned char selectionStart = 0;
@@ -50,6 +51,7 @@ private:
     void updatePageContext();
     void detectCommands();
     void setupEncodersCallbacks();
+    void drawSequenceGraph();
     void printSequenceMode();
     void printVelocityMode();
     void printDurationMode();
@@ -61,6 +63,7 @@ private:
 public:
     int *stepPosition;
     unsigned char *sequenceLength;
+    char *pagesLength;
     Note *notes;
     unsigned char *random_root;
     unsigned char *random_scale;
@@ -99,7 +102,10 @@ public:
     std::function<void(int)> onActivateScaleLock;
     std::function<void(int)> onChangeScale;
     std::function<void(int)> onChangeRoot;
+    std::function<void(int)> onChangeSequenceMode;
     void setup();
     void update();
     void renderSplash();
 };
+
+void getMinMaxNotes(Note *notes, std::function<unsigned char(Note n)> extractor, Note *minNote, Note *maxNote, unsigned char start, unsigned char end);
