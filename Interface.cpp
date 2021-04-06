@@ -332,7 +332,7 @@ void Interface::drawSequenceGraph()
 {
     unsigned char pitches[64];
     unsigned char length = multiMode ? pagesLength[currentPage] : *sequenceLength;
-    for (unsigned char i = 0; i < *sequenceLength; i++)
+    for (unsigned char i = 0; i < length; i++)
         pitches[i] = multiMode ? notes[16 * currentPage + i].pitch : notes[i].pitch;
     disp.plotGraph(pitches, length, false);
 }
@@ -408,10 +408,12 @@ void Interface::printVelocityMode()
         notes, [](Note n) -> unsigned char { return n.velocity; }, &minNote, &maxNote, selectionStart, selectionEnd);
 
     unsigned char velocities[64] = {};
-    for (unsigned char i = 0; i < *sequenceLength; i++)
+    unsigned char length = multiMode ? pagesLength[currentPage] : *sequenceLength;
+    for (unsigned char i = 0; i < length; i++)
     {
-        velocities[i] = notes[i].velocity;
+        velocities[i] = multiMode ? notes[i + currentPage * 16].velocity : notes[i].velocity;
     }
+
     if (selectionStart == selectionEnd)
     {
         String upperLine = "VELOCITY " + String((int)minNote.velocity);
@@ -430,9 +432,11 @@ void Interface::printDurationMode()
         notes, [](Note n) -> unsigned char { return n.duration; }, &minNote, &maxNote, selectionStart, selectionEnd);
 
     int durations[64] = {};
-    for (unsigned char i = 0; i < *sequenceLength; i++)
-        durations[i] = notes[i].duration;
-
+    unsigned char length = multiMode ? pagesLength[currentPage] : *sequenceLength;
+    for (unsigned char i = 0; i < length; i++)
+    {
+        durations[i] = multiMode ? notes[i + currentPage * 16].duration : notes[i].duration;
+    }
     String upperLine;
     if (selectionStart == selectionEnd)
     {
