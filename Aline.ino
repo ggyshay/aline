@@ -46,35 +46,62 @@ void setup()
   // while (!Serial)
   //   ;
   Serial.println("Serial Started");
-  interface.onSelectionChange = [](char start, char end) -> void {
+  interface.onSelectionChange = [](char start, char end) -> void
+  {
     sequence.setSelection(start, end);
   };
-  interface.onPitchUp = []() -> void { sequence.selectionPitchUp(); };
-  interface.onPitchDown = []() -> void { sequence.selectionPitchDown(); };
-  interface.onOctUp = []() -> void { sequence.selectionOctUp(); };
-  interface.onOctDown = []() -> void { sequence.selectionOctDown(); };
-  interface.onCopy = []() -> void { sequence.copySelection(copyBuffer); };
-  interface.onPaste = []() -> void { sequence.pasteToSelection(copyBuffer); };
-  interface.onDurationUp = []() -> void { sequence.setSelectionDurationUp(); };
-  interface.onDurationDown = []() -> void { sequence.setSelectionDurationDown(); };
-  interface.onVelocityUp = []() -> void { sequence.setSelectionVelocityUp(); };
-  interface.onVelocityDown = []() -> void { sequence.setSelectionVelocityDown(); };
-  interface.onLengthUp = []() -> void { sequence.setSequenceLengthUp(); };
-  interface.onLengthDown = []() -> void { sequence.setSequenceLengthDown(); };
-  interface.onErase = []() -> void { sequence.eraseSequence(); };
-  interface.onGateChange = [](bool *gates, char currentPage) -> void { sequence.changeGates(gates, currentPage); };
-  interface.onEase = []() -> void { sequence.easeSelection(); };
-  interface.onSave = [](int i) -> void { stateManager.saveBank(i, &sequence); };
-  interface.onLoad = [](int i) -> void { stateManager.loadBank(i, &sequence); };
-  interface.onMask = [](int i) -> void { stateManager.maskFromBank(i, &sequence); };
-  interface.setRootUp = [](void) -> void { sequence.setRootUp(); };
-  interface.setRootDown = [](void) -> void { sequence.setRootDown(); };
-  interface.setScaleUp = [](void) -> void { sequence.setScaleUp(); };
-  interface.setScaleDown = [](void) -> void { sequence.setScaleDown(); };
-  interface.setSeedUp = [](void) -> void { sequence.setSeedUp(); };
-  interface.setSeedDown = [](void) -> void { sequence.setSeedDown(); };
-  interface.setOctavesUp = [](void) -> void { sequence.setOctavesUp(); };
-  interface.setOctavesDown = [](void) -> void { sequence.setOctavesDown(); };
+  interface.onPitchUp = []() -> void
+  { sequence.selectionPitchUp(); };
+  interface.onPitchDown = []() -> void
+  { sequence.selectionPitchDown(); };
+  interface.onOctUp = []() -> void
+  { sequence.selectionOctUp(); };
+  interface.onOctDown = []() -> void
+  { sequence.selectionOctDown(); };
+  interface.onCopy = []() -> void
+  { sequence.copySelection(copyBuffer); };
+  interface.onPaste = []() -> void
+  { sequence.pasteToSelection(copyBuffer); };
+  interface.onDurationUp = []() -> void
+  { sequence.setSelectionDurationUp(); };
+  interface.onDurationDown = []() -> void
+  { sequence.setSelectionDurationDown(); };
+  interface.onVelocityUp = []() -> void
+  { sequence.setSelectionVelocityUp(); };
+  interface.onVelocityDown = []() -> void
+  { sequence.setSelectionVelocityDown(); };
+  interface.onLengthUp = []() -> void
+  { sequence.setSequenceLengthUp(); };
+  interface.onLengthDown = []() -> void
+  { sequence.setSequenceLengthDown(); };
+  interface.onErase = []() -> void
+  { sequence.eraseSequence(); };
+  interface.onGateChange = [](bool *gates, char currentPage) -> void
+  { sequence.changeGates(gates, currentPage); };
+  interface.onEase = []() -> void
+  { sequence.easeSelection(); };
+  interface.onSave = [](int i) -> void
+  { stateManager.saveBank(i, &sequence); };
+  interface.onLoad = [](int i) -> void
+  { stateManager.loadBank(i, &sequence); };
+  interface.onMask = [](int i) -> void
+  { stateManager.maskFromBank(i, &sequence); };
+  interface.setRootUp = [](void) -> void
+  { sequence.setRootUp(); };
+  interface.setRootDown = [](void) -> void
+  { sequence.setRootDown(); };
+  interface.setScaleUp = [](void) -> void
+  { sequence.setScaleUp(); };
+  interface.setScaleDown = [](void) -> void
+  { sequence.setScaleDown(); };
+  interface.setSeedUp = [](void) -> void
+  { sequence.setSeedUp(); };
+  interface.setSeedDown = [](void) -> void
+  { sequence.setSeedDown(); };
+  interface.setOctavesUp = [](void) -> void
+  { sequence.setOctavesUp(); };
+  interface.setOctavesDown = [](void) -> void
+  { sequence.setOctavesDown(); };
 
   interface.stepPosition = &scheduler.currentNote;
   interface.sequenceLength = &sequence.sequenceLength;
@@ -83,12 +110,18 @@ void setup()
   interface.random_scale = &sequence.currentScale;
   interface.random_seed = &sequence.currentSeed;
   interface.random_octaves = &sequence.currentOctaves;
-  interface.onChangeClockSource = [](int i) -> void { scheduler.setClockSource(i); };
-  interface.onChangeBPM = [](void) -> void { scheduler.onBPMChange(); };
-  interface.onActivateScaleLock = [](int i) -> void { sequence.setScaleLock(i); };
-  interface.onChangeScale = [](int i) -> void { sequence.setScale(i); };
-  interface.onChangeRoot = [](int i) -> void { sequence.setRootNote(i); };
-  interface.onChangeSequenceMode = [](int i) -> void {
+  interface.onChangeClockSource = [](int i) -> void
+  { scheduler.setClockSource(i); };
+  interface.onChangeBPM = [](void) -> void
+  { scheduler.onBPMChange(); };
+  interface.onActivateScaleLock = [](int i) -> void
+  { sequence.setScaleLock(i); };
+  interface.onChangeScale = [](int i) -> void
+  { sequence.setScale(i); };
+  interface.onChangeRoot = [](int i) -> void
+  { sequence.setRootNote(i); };
+  interface.onChangeSequenceMode = [](int i) -> void
+  {
     sequence.multiMode = i == 1;
     scheduler.multiMode = i == 1;
   };
