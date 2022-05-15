@@ -37,14 +37,14 @@ private:
     bool gateMode = false;
     bool randomMode = false;
     bool multiMode = false;
-    unsigned char currentPage = 0;
+    byte currentPage = 0;
     bool pressedAuxButtons[8];
-    unsigned char selectionStart = 0;
-    unsigned char selectionEnd = 0;
+    byte selectionStart = 0;
+    byte selectionEnd = 0;
     unsigned long lastSelectionChange = 0;
 
-    unsigned char visualisationMode = LED_STEP_MODE;
-    unsigned char displayMode = 1;
+    byte visualisationMode = LED_STEP_MODE;
+    byte displayMode = 1;
     unsigned long lastVisualisationChange = 0;
 
     void detectSelecion();
@@ -58,45 +58,48 @@ private:
     void printLengthMode();
     void writeToDisplay();
     void changeWriteMode(int newMode, int newDisplayMode);
-    void writeLedModes(unsigned char i);
+    void writeLedModes(byte i);
+
+    // void onLengthUp();
+    // void onLengthDown();
+    // void onDurationUp();
+    // void onDurationDown();
+    // void onVelocityUp();
+    // void onVelocityDown();
+    // void onPitchUp();
+    // void onPitchDown();
+    // void onOctUp();
+    // void onOctDown();
+    // void setSeedUp();
+    // void setSeedDown();
+    // void setScaleUp();
+    // void setScaleDown();
+    // void setRootUp();
+    // void setRootDown();
+    // void setOctavesUp();
+    // void setOctavesDown();
 
 public:
-    int *stepPosition;
-    unsigned char *sequenceLength;
+    byte *stepPosition;
+    byte *sequenceLength;
     char *pagesLength;
     Note *notes;
-    unsigned char *random_root;
-    unsigned char *random_scale;
+    byte *random_root;
+    byte *random_scale;
     char *random_seed;
-    unsigned char *random_octaves;
+    byte *random_octaves;
     float *BPM;
-    std::function<void(void)> onLengthUp = nullptr;
-    std::function<void(void)> onLengthDown = nullptr;
-    std::function<void(void)> onDurationUp = nullptr;
-    std::function<void(void)> onDurationDown = nullptr;
-    std::function<void(void)> onVelocityUp = nullptr;
-    std::function<void(void)> onVelocityDown = nullptr;
-    std::function<void(void)> onPitchUp = nullptr;
-    std::function<void(void)> onPitchDown = nullptr;
-    std::function<void(void)> onOctUp = nullptr;
-    std::function<void(void)> onOctDown = nullptr;
-    std::function<void(unsigned char, unsigned char)> onSelectionChange = nullptr;
+
+    std::function<void(byte t)> onMessage = nullptr;
+    std::function<void(byte, byte)> onSelectionChange = nullptr;
     std::function<void(void)> onCopy = nullptr;
     std::function<void(void)> onPaste = nullptr;
-    std::function<void(void)> onErase = nullptr;
-    std::function<void(bool *, unsigned char)> onGateChange = nullptr;
-    std::function<void(void)> onEase = nullptr;
+    // std::function<void(void)> onErase = nullptr;
+    std::function<void(bool *, byte)> onGateChange = nullptr;
+    // std::function<void(void)> onEase = nullptr;
     std::function<void(int)> onLoad = nullptr;
     std::function<void(int)> onSave = nullptr;
     std::function<void(int)> onMask = nullptr;
-    std::function<void(void)> setSeedUp = nullptr;
-    std::function<void(void)> setSeedDown = nullptr;
-    std::function<void(void)> setScaleUp = nullptr;
-    std::function<void(void)> setScaleDown = nullptr;
-    std::function<void(void)> setRootUp = nullptr;
-    std::function<void(void)> setRootDown = nullptr;
-    std::function<void(void)> setOctavesUp = nullptr;
-    std::function<void(void)> setOctavesDown = nullptr;
     std::function<void(int)> onChangeClockSource;
     std::function<void(void)> onChangeBPM;
     std::function<void(int)> onActivateScaleLock;
@@ -108,4 +111,4 @@ public:
     void renderSplash();
 };
 
-void getMinMaxNotes(Note *notes, std::function<unsigned char(Note n)> extractor, Note *minNote, Note *maxNote, unsigned char start, unsigned char end);
+void getMinMaxNotes(Note *notes, std::function<byte(Note n)> extractor, Note *minNote, Note *maxNote, byte start, byte end);

@@ -13,7 +13,7 @@ public:
 private:
     static unsigned int lastTransmit;
     static bool pendingTransmission;
-    void sendCmd(unsigned char cmd); //send a single command (see datasheet)
+    void sendCmd(byte cmd); // send a single command (see datasheet)
     static void triggerTransmission();
     static void transmitScreen();
     static void transmitBuffer();

@@ -1,10 +1,10 @@
 #include "Interface.h"
 
-void getMinMaxNotes(Note *notes, std::function<unsigned char(Note n)> extractor, Note *minNote, Note *maxNote, unsigned char start, unsigned char end)
+void getMinMaxNotes(Note *notes, std::function<byte(Note n)> extractor, Note *minNote, Note *maxNote, byte start, byte end)
 {
     *minNote = notes[start];
     *maxNote = notes[start];
-    for (unsigned char i = start + 1; i <= end; i++)
+    for (byte i = start + 1; i <= end; i++)
     {
         *minNote = extractor(notes[i]) < extractor(*minNote) ? notes[i] : *minNote;
         *maxNote = extractor(notes[i]) > extractor(*maxNote) ? notes[i] : *maxNote;
@@ -15,7 +15,7 @@ void Interface::detectSelecion()
 {
     int newSelectionStart = 1000;
     int newSelectionEnd = -1;
-    for (unsigned char i = 0; i < 16; i++)
+    for (byte i = 0; i < 16; i++)
     {
         if (pressedButtons[i] && (16 * currentPage + i < newSelectionStart))
             newSelectionStart = 16 * currentPage + i;
@@ -41,7 +41,7 @@ void Interface::detectSelecion()
 
 void Interface::updatePageContext()
 {
-    for (unsigned char i = 0; i < 16; i++)
+    for (byte i = 0; i < 16; i++)
         buttons[i]->setPointer(gateMode ? &(notes[i + 16 * currentPage].gate) : pressedButtons + i);
 }
 
@@ -51,12 +51,14 @@ void Interface::detectCommands()
     {
         if (pressedAuxButtons[0])
         {
-            onPaste();
+            onMessage(MSG_PASTE);
+            // onPaste();
             changeWriteMode(LED_SELECTION_MODE, DISPLAY_SELECTION_MODE);
         }
         else
         {
-            onCopy();
+            onMessage(MSG_COPY);
+            // onCopy();
         }
         pressedAuxButtons[1] = 0;
     }
@@ -65,18 +67,21 @@ void Interface::detectCommands()
 
         if (pressedAuxButtons[0])
         {
-            onOctDown();
+            onMessage(MSG_SEL_OCT_DOWN);
+            // onOctDown();
         }
         else
         {
-            onOctUp();
+            onMessage(MSG_SEL_OCT_UP);
+            // onOctUp();
         }
         changeWriteMode(LED_SELECTION_MODE, DISPLAY_SELECTION_MODE);
         pressedAuxButtons[2] = 0;
     }
     if (pressedAuxButtons[3])
     {
-        onEase();
+        onMessage(MSG_EASE_SEL);
+        // onEase();
         changeWriteMode(LED_SELECTION_MODE, DISPLAY_VELOCITY_MODE);
         pressedAuxButtons[3] = 0;
     }
@@ -152,39 +157,48 @@ void Interface::detectCommands()
 
 void Interface::setupEncodersCallbacks()
 {
-    encoders[0].onIncrement = [this]() -> void {
+    encoders[0].onIncrement = [this]() -> void
+    {
         if (randomMode)
         {
-            setRootUp();
+            onMessage(MSG_ROOT_UP);
+            // setRootUp();
             changeWriteMode(LED_SELECTION_MODE, DISPLAY_RANDOM_ROOT_MODE);
         }
         else
         {
-            onPitchUp();
+            onMessage(MSG_SEL_PITCH_UP);
+            // onPitchUp();
             changeWriteMode(LED_SELECTION_MODE, DISPLAY_SELECTION_MODE);
         }
     };
 
-    encoders[0].onDecrement = [this]() -> void {
+    encoders[0].onDecrement = [this]() -> void
+    {
         if (randomMode)
         {
-            setRootDown();
+            onMessage(MSG_ROOT_DOWN);
+            // setRootDown();
             changeWriteMode(LED_SELECTION_MODE, DISPLAY_RANDOM_ROOT_MODE);
         }
         else
         {
-            onPitchDown();
+            onMessage(MSG_SEL_PITCH_DOWN);
+            // onPitchDown();
             changeWriteMode(LED_SELECTION_MODE, DISPLAY_SELECTION_MODE);
         }
     };
-    encoders[0].onClick = [this]() -> void {
+    encoders[0].onClick = [this]() -> void
+    {
         randomMode = !randomMode;
         changeWriteMode(LED_LENGTH_MODE, randomMode ? DISPLAY_RANDOM_ROOT_MODE : DISPLAY_SELECTION_MODE);
     };
-    encoders[1].onIncrement = [this]() -> void {
+    encoders[1].onIncrement = [this]() -> void
+    {
         if (randomMode)
         {
-            setScaleUp();
+            onMessage(MSG_SCALE_UP);
+            // setScaleUp();
             changeWriteMode(LED_SELECTION_MODE, DISPLAY_RANDOM_SCALE_MODE);
         }
         else if (multiMode)
@@ -194,14 +208,17 @@ void Interface::setupEncodersCallbacks()
         }
         else
         {
-            onLengthUp();
+            onMessage(MSG_SEQ_LEN_UP);
+            // onLengthUp();
             changeWriteMode(LED_LENGTH_MODE, DISPLAY_LENGTH_MODE);
         }
     };
-    encoders[1].onDecrement = [this]() -> void {
+    encoders[1].onDecrement = [this]() -> void
+    {
         if (randomMode)
         {
-            setScaleDown();
+            onMessage(MSG_SCALE_DOWN);
+            // setScaleDown();
             changeWriteMode(LED_SELECTION_MODE, DISPLAY_RANDOM_SCALE_MODE);
         }
         else if (multiMode)
@@ -211,82 +228,101 @@ void Interface::setupEncodersCallbacks()
         }
         else
         {
-            onLengthDown();
+            onMessage(MSG_SEQ_LEN_DOWN);
+            // onLengthDown();
             changeWriteMode(LED_LENGTH_MODE, DISPLAY_LENGTH_MODE);
         }
     };
-    encoders[1].onClick = [this]() -> void {
+    encoders[1].onClick = [this]() -> void
+    {
         disp.buildTwoStringScreen("PAU NO CU", "DO BOLSONARO");
     };
     encoders[2]
-        .onIncrement = [this]() -> void {
+        .onIncrement = [this]() -> void
+    {
         if (randomMode)
         {
-            setSeedUp();
+            onMessage(MSG_SEED_UP);
+            // setSeedUp();
             changeWriteMode(LED_SELECTION_MODE, DISPLAY_RANDOM_SEED_MODE);
         }
         else
         {
-            onDurationUp();
+            onMessage(MSG_SEL_DURATION_UP);
+            // onDurationUp();
             changeWriteMode(LED_SELECTION_MODE, DISPLAY_DURATION_MODE);
         }
     };
-    encoders[2].onDecrement = [this]() -> void {
+    encoders[2].onDecrement = [this]() -> void
+    {
         if (randomMode)
         {
-            setSeedDown();
+            onMessage(MSG_SEED_DOWN);
+            // setSeedDown();
             changeWriteMode(LED_SELECTION_MODE, DISPLAY_RANDOM_SEED_MODE);
         }
         else
         {
-            onDurationDown();
+            onMessage(MSG_SEL_DURATION_DOWN);
+            // onDurationDown();
             changeWriteMode(LED_SELECTION_MODE, DISPLAY_DURATION_MODE);
         }
     };
-    encoders[2].onClick = [this]() -> void {
+    encoders[2].onClick = [this]() -> void
+    {
         disp.buildTwoStringScreen("PAU NO CU", "DO BOLSONARO");
     };
     encoders[3]
-        .onIncrement = [this]() -> void {
+        .onIncrement = [this]() -> void
+    {
         if (randomMode)
         {
-            setOctavesUp();
+            onMessage(MSG_OCT_UP);
+            // setOctavesUp();
             changeWriteMode(LED_SELECTION_MODE, DISPLAY_RANDOM_OCTAVES_MODE);
         }
         else
         {
-            onVelocityUp();
+            onMessage(MSG_SEL_VELOCITY_UP);
+            // onVelocityUp();
             changeWriteMode(LED_SELECTION_MODE, DISPLAY_VELOCITY_MODE);
         }
     };
-    encoders[3].onDecrement = [this]() -> void {
+    encoders[3].onDecrement = [this]() -> void
+    {
         if (randomMode)
         {
-            setOctavesDown();
+            onMessage(MSG_OCT_DOWN);
+            // setOctavesDown();
             changeWriteMode(LED_SELECTION_MODE, DISPLAY_RANDOM_OCTAVES_MODE);
         }
         else
         {
-            onVelocityDown();
+            onMessage(MSG_SEL_VELOCITY_DOWN);
+            // onVelocityDown();
             changeWriteMode(LED_SELECTION_MODE, DISPLAY_VELOCITY_MODE);
         }
     };
-    encoders[3].onClick = [this]() -> void {
+    encoders[3].onClick = [this]() -> void
+    {
         gateMode = !gateMode;
-        for (unsigned char i = 0; i < 16; ++i)
+        for (byte i = 0; i < 16; ++i)
         {
             buttons[i]->setPointer(gateMode ? &(notes[i + 16 * currentPage].gate) : pressedButtons + i);
             buttons[i]->isReleaseSensitive = !(buttons[i]->isReleaseSensitive);
         }
         changeWriteMode(LED_LENGTH_MODE, gateMode ? DISPLAY_GATE_MODE : DISPLAY_SELECTION_MODE);
     };
-    encoders[4].onIncrement = [this]() -> void {
+    encoders[4].onIncrement = [this]() -> void
+    {
         menu.onIncrement();
     };
-    encoders[4].onDecrement = [this]() -> void {
+    encoders[4].onDecrement = [this]() -> void
+    {
         menu.onDecrement();
     };
-    encoders[4].onClick = [this]() -> void {
+    encoders[4].onClick = [this]() -> void
+    {
         menu.onClick();
     };
 }
@@ -296,43 +332,55 @@ void Interface::setup()
     setupPins();
     setupEncodersCallbacks();
 
-    for (unsigned char i = 0; i < 16; i++)
+    for (byte i = 0; i < 16; i++)
     {
         buttons[i] = new Button(pressedButtons + i, true);
     }
 
-    for (unsigned char i = 0; i < 8; i++)
+    for (byte i = 0; i < 8; i++)
     {
         auxButtons[i] = new Button(pressedAuxButtons + i, true);
     }
     disp.init();
     menu.disp = &disp;
     menu.setGraphicsPointer(&disp);
-    menu.onLoad = [this](std::vector<int> *stack) -> void { onLoad((*stack)[1]); };
-    menu.onSave = [this](std::vector<int> *stack) -> void { onSave((*stack)[1]); };
-    menu.onMask = [this](std::vector<int> *stack) -> void { onMask((*stack)[1]); };
-    menu.onChangeClockSource = [this](std::vector<int> *stack) -> void { onChangeClockSource((*stack)[2]); };
-    menu.onChangeBPM = [this](std::vector<int> *stack) -> void { onChangeBPM(); };
-    menu.onActivateScaleLock = [this](std::vector<int> *stack) -> void { onActivateScaleLock((*stack)[2]); };
-    menu.onChangeScale = [this](std::vector<int> *stack) -> void { onChangeScale((*stack)[2]); };
-    menu.onChangeRoot = [this](std::vector<int> *stack) -> void { onChangeRoot((*stack)[2]); };
-    menu.onErase = [this](std::vector<int> *stack) -> void {
-        onErase();
+    menu.onLoad = [this](std::vector<int> *stack) -> void
+    { onLoad((*stack)[1]); };
+    menu.onSave = [this](std::vector<int> *stack) -> void
+    { onSave((*stack)[1]); };
+    menu.onMask = [this](std::vector<int> *stack) -> void
+    { onMask((*stack)[1]); };
+    menu.onChangeClockSource = [this](std::vector<int> *stack) -> void
+    { onChangeClockSource((*stack)[2]); };
+    menu.onChangeBPM = [this](std::vector<int> *stack) -> void
+    { onChangeBPM(); };
+    menu.onActivateScaleLock = [this](std::vector<int> *stack) -> void
+    { onActivateScaleLock((*stack)[2]); };
+    menu.onChangeScale = [this](std::vector<int> *stack) -> void
+    { onChangeScale((*stack)[2]); };
+    menu.onChangeRoot = [this](std::vector<int> *stack) -> void
+    { onChangeRoot((*stack)[2]); };
+    menu.onErase = [this](std::vector<int> *stack) -> void
+    {
+        onMessage(MSG_ERASE_SEQ);
+        // onErase();
         onSelectionChange(0, 15);
         selectionStart = 0;
         selectionEnd = 15;
         changeWriteMode(LED_SELECTION_MODE, DISPLAY_SELECTION_MODE);
     };
-    menu.onChangeSequenceMode = [this](std::vector<int> *stack) -> void { onChangeSequenceMode((*stack)[1]); multiMode = (*stack)[1] == 1; };
+    menu.onChangeSequenceMode = [this](std::vector<int> *stack) -> void
+    { onChangeSequenceMode((*stack)[1]); multiMode = (*stack)[1] == 1; };
     menu.setBPMPointer(BPM);
     menu.init();
 }
 
 void Interface::drawSequenceGraph()
 {
-    unsigned char pitches[64];
-    unsigned char length = multiMode ? pagesLength[currentPage] : *sequenceLength;
-    for (unsigned char i = 0; i < length; i++)
+    byte pitches[64];
+    // Serial.printf("multimode: %d, sequenceLength: %d\n");
+    byte length = multiMode ? pagesLength[currentPage] : *sequenceLength;
+    for (byte i = 0; i < length; i++)
         pitches[i] = multiMode ? notes[16 * currentPage + i].pitch : notes[i].pitch;
     disp.plotGraph(pitches, length, false);
 }
@@ -344,13 +392,13 @@ void Interface::renderSplash()
 
 void Interface::printSequenceMode()
 {
-    unsigned char pitches[64] = {};
-    unsigned char length = 0;
+    byte pitches[64] = {};
+    byte length = 0;
     Note minSelectionNote;
     Note maxSelectionNote;
     minSelectionNote = notes[selectionStart];
     maxSelectionNote = notes[selectionStart];
-    for (unsigned char i = selectionStart; i <= selectionEnd; i++)
+    for (byte i = selectionStart; i <= selectionEnd; i++)
     {
         minSelectionNote = notes[i].pitch < minSelectionNote.pitch ? notes[i] : minSelectionNote;
         maxSelectionNote = notes[i].pitch > maxSelectionNote.pitch ? notes[i] : maxSelectionNote;
@@ -358,7 +406,7 @@ void Interface::printSequenceMode()
     if (multiMode)
     {
         length = pagesLength[currentPage];
-        for (unsigned char i = 0; i < length; i++)
+        for (byte i = 0; i < length; i++)
         {
             pitches[i] = notes[i + 16 * currentPage].pitch;
         }
@@ -392,7 +440,7 @@ void Interface::printSequenceMode()
 void Interface::printLengthMode()
 {
     disp.beginSession();
-    unsigned char length = multiMode ? pagesLength[currentPage] : *sequenceLength;
+    byte length = multiMode ? pagesLength[currentPage] : *sequenceLength;
     String upperLine = "LENGTH " + String((int)length);
     disp.writeLine(upperLine.c_str());
     disp.blackLine();
@@ -405,11 +453,13 @@ void Interface::printVelocityMode()
 {
     Note minNote, maxNote;
     getMinMaxNotes(
-        notes, [](Note n) -> unsigned char { return n.velocity; }, &minNote, &maxNote, selectionStart, selectionEnd);
+        notes, [](Note n) -> byte
+        { return n.velocity; },
+        &minNote, &maxNote, selectionStart, selectionEnd);
 
-    unsigned char velocities[64] = {};
-    unsigned char length = multiMode ? pagesLength[currentPage] : *sequenceLength;
-    for (unsigned char i = 0; i < length; i++)
+    byte velocities[64] = {};
+    byte length = multiMode ? pagesLength[currentPage] : *sequenceLength;
+    for (byte i = 0; i < length; i++)
     {
         velocities[i] = multiMode ? notes[i + currentPage * 16].velocity : notes[i].velocity;
     }
@@ -429,11 +479,13 @@ void Interface::printDurationMode()
 {
     Note minNote, maxNote;
     getMinMaxNotes(
-        notes, [](Note n) -> unsigned char { return n.duration; }, &minNote, &maxNote, selectionStart, selectionEnd);
+        notes, [](Note n) -> byte
+        { return n.duration; },
+        &minNote, &maxNote, selectionStart, selectionEnd);
 
     int durations[64] = {};
-    unsigned char length = multiMode ? pagesLength[currentPage] : *sequenceLength;
-    for (unsigned char i = 0; i < length; i++)
+    byte length = multiMode ? pagesLength[currentPage] : *sequenceLength;
+    for (byte i = 0; i < length; i++)
     {
         durations[i] = multiMode ? notes[i + currentPage * 16].duration : notes[i].duration;
     }
@@ -494,7 +546,7 @@ void Interface::changeWriteMode(int newMode, int newDisplayMode)
     writeToDisplay();
 }
 
-void Interface::writeLedModes(unsigned char i)
+void Interface::writeLedModes(byte i)
 {
     if (gateMode)
     {
@@ -528,11 +580,13 @@ void Interface::writeLedModes(unsigned char i)
 
 void Interface::update()
 {
+    // Serial.printf("step position: %d\n", *stepPosition);
+    // Serial.printf("randomMode: %d\n", randomMode);
     if (millis() - lastVisualisationChange > VISUALISATION_CHANGE_DEBOUNCE)
     {
         visualisationMode = LED_STEP_MODE;
     }
-    for (unsigned char i = 0; i < 16; i++)
+    for (byte i = 0; i < 16; i++)
     {
         sendBits(i);
         writeLedModes(i);

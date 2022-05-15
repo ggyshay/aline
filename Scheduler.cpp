@@ -1,172 +1,58 @@
-
-#include "Scheduler.h"
+#include "scheduler.h"
 
 static void handleClockOuter();
-static void handleBufferTimeout();
-bool noteOffSorter(NoteOffEvt a, NoteOffEvt b)
+Scheduler::Scheduler(/* args */)
 {
-    return a.timeout <= b.timeout;
 }
 
-void Scheduler::sendPendingNoteOffs()
+void Scheduler::begin()
 {
-    int now = micros();
-    std::sort(noteOffBuffer.begin(), noteOffBuffer.begin() + noteOffBuffer.size(), noteOffSorter);
-    while ((noteOffBuffer.size() > 0) && noteOffBuffer[0].timeout < now)
+    internalClockTimer.begin(handleClockOuter, 15000000 / bpmEstimate);
+}
+
+void Scheduler::tick()
+{
+    if (tickCallback != nullptr)
     {
-        usbMIDI.sendNoteOff(noteOffBuffer[0].note.pitch, noteOffBuffer[0].note.velocity, noteOffBuffer[0].channel);
-        noteOffBuffer.erase(noteOffBuffer.begin());
+        tickCallback();
     }
 }
 
-void Scheduler::deleteFutureNoteOff(char pitch, char velocity, char channel)
+void Scheduler::setTickCallback(std::function<void(void)> callback)
 {
-    for (unsigned int i = 0; i < noteOffBuffer.size(); ++i)
-    {
-        if ((noteOffBuffer[i].note.pitch == pitch) && (noteOffBuffer[i].note.velocity == velocity) && (noteOffBuffer[i].channel == channel))
-        {
-            noteOffBuffer.erase(noteOffBuffer.begin() + i);
-            return;
-        }
-    }
-}
-void Scheduler::scheduleNoteOffBuffer()
-{
-    int now = micros();
-    // Serial.println("scheduler: scheduleNoteOffBuffer");
-    if (noteOffBuffer.size() == 0)
-    {
-        txTimer.end();
-        return;
-    }
-    std::sort(noteOffBuffer.begin(), noteOffBuffer.begin() + noteOffBuffer.size(), noteOffSorter);
-    txTimer.update(noteOffBuffer[0].timeout - now);
-    // Serial.printf("noteOffBuffer:\n    now: %d\n", now);
-    // for (auto e : noteOffBuffer)
-    // {
-    //     Serial.printf("    t=%d\n", e.timeout);
-    // }
-    // Serial.println();
+    tickCallback = callback;
 }
 
-void Scheduler::bufferTimeout()
+void Scheduler::onMIDIClock()
 {
-    // Serial.printf("buffertimeout, %d evts waiting\n", noteOffBuffer.size());
-    // Serial.printf("noteOffBuffer:\n    now: %d\n", now);
-    // for (auto e : noteOffBuffer)
-    // {
-    //     Serial.printf("    t=%d dchannel=%d\n", e.timeout, e.channel);
-    // }
-    // Serial.println();
-    if (noteOffBuffer.size() == 0)
+    unsigned long now = micros();
+    if (lastClock != 0)
     {
-        // Serial.println("buffer empty, stopping");
-        txTimer.end();
-        return;
+        int pulseDelta = now - lastClock;
+        bpmEstimate = bpmEstimate * 0.85 + 0.15 * (60000000 / (pulseDelta * 4));
     }
-    sendPendingNoteOffs();
-    txTimer.update(noteOffBuffer[0].timeout - micros());
+    lastClock = now;
 }
 
-void Scheduler::sendNextNote()
+void Scheduler::setOnSendCallback(std::function<void(void)> callback)
 {
-    unsigned int now = micros();
-    sendPendingNoteOffs();
-    if (multiMode)
-    {
-        for (unsigned char i = 0; i < 4; i++)
-        {
-            int length = pagesLength[i];
-            currentPageNote[i] = (currentPageNote[i] + 1) % length;
-            if (notes[currentPageNote[i] + 16 * i].gate)
-            {
-                deleteFutureNoteOff(notes[currentPageNote[i] + 16 * i].pitch, notes[currentPageNote[i] + 16 * i].velocity, i + 1);
-                usbMIDI.sendNoteOn(notes[currentPageNote[i] + 16 * i].pitch, notes[currentPageNote[i] + 16 * i].velocity, i + 1);
-                NoteOffEvt e;
-                e.note = notes[currentPageNote[i] + 16 * i];
-                e.timeout = 10 * sixteenth * notes[currentPageNote[i] + 16 * i].duration + now;
-                e.channel = i + 1;
-                noteOffBuffer.push_back(e);
-                if (noteOffBuffer.size() == 1)
-                {
-                    txTimer.begin(handleBufferTimeout, noteOffBuffer[0].timeout - now);
-                }
-            }
-        }
-    }
-    else
-    {
-        // Serial.println("send next note single mode");
-        int length = *sequenceLength;
-        currentNote = (currentNote + 1) % length;
-        if (notes[currentNote].gate)
-        {
-            deleteFutureNoteOff(notes[currentNote].pitch, notes[currentNote].velocity, 1);
-            usbMIDI.sendNoteOn(notes[currentNote].pitch, notes[currentNote].velocity, 1);
-            NoteOffEvt e;
-            e.note = notes[currentNote];
-            e.timeout = now + 10 * sixteenth * notes[currentNote].duration;
-            e.channel = 1;
-            noteOffBuffer.push_back(e);
-            if (noteOffBuffer.size() == 1)
-            {
-                txTimer.begin(handleBufferTimeout, noteOffBuffer[0].timeout - now);
-            }
-        }
-    }
-    scheduleNoteOffBuffer();
+    onSendCallback = callback;
 }
 
-void Scheduler::resetPosition()
+void Scheduler::registerTimeToNextEvent(unsigned long timeToNextEventMicros)
 {
-    currentNote = 0;
-    clocks = 0;
-    for (unsigned char i = 0; i < 4; i++)
-    {
-        currentPageNote[i] = 0;
-    }
-}
-
-void Scheduler::internalHandleClock()
-{
-    if (clocks == 0)
-    {
-        periodStart = millis();
-    }
-    sixteenth = usignInternalClock ? 15000 / BPM : round(clocks == 0 ? 125 : 1.0f * (millis() - periodStart) / clocks);
-    clocks++;
-
-    sendNextNote();
-}
-
-void Scheduler::onClock()
-{
-    if (!usignInternalClock)
-        internalHandleClock();
-}
-
-void Scheduler::setClockSource(int i)
-{
-    usignInternalClock = i == 1;
-    if (usignInternalClock)
-    {
-        internalClockTimer.begin(handleClockOuter, 15000 / BPM * 1000);
-    }
-    else
+    if (timeToNextEventMicros == MAX_U_LONG_VAL)
     {
         internalClockTimer.end();
     }
-}
-void Scheduler::onBPMChange()
-{
-    internalClockTimer.update(15000 / BPM * 1000);
-}
-static void handleClockOuter()
-{
-    scheduler.internalHandleClock();
+    else
+    {
+        Serial.printf("unlocking and setting next timeout of %dms\n", timeToNextEventMicros);
+        internalClockTimer.begin(handleClockOuter, timeToNextEventMicros);
+    }
 }
 
-static void handleBufferTimeout()
+static void handleClockOuter()
 {
-    scheduler.bufferTimeout();
+    scheduler.tick();
 }

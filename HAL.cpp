@@ -1,34 +1,4 @@
 #include "HAL.h"
-// namespace std
-// {
-//     void __throw_bad_alloc()
-//     {
-//         Serial.println("Unable to allocate memory");
-//         while (1)
-//             ;
-//     }
-
-//     void __throw_length_error(char const *e)
-//     {
-//         Serial.print("Length Error :");
-//         Serial.println(e);
-//         while (1)
-//             ;
-//     }
-
-//     void __throw_bad_function_call()
-//     {
-//         Serial.println("Bad function call!");
-//         while (1)
-//             ;
-//     }
-//     void __throw_logic_error(char const *err)
-//     {
-//         Serial.println(err);
-//         while (true)
-//             ;
-//     }
-// } // namespace std
 
 void setupPins()
 {
