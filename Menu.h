@@ -221,7 +221,7 @@ public:
 
     void printStack()
     {
-        for (unsigned char i = 0; i < paramterStack.size(); i++)
+        for (byte i = 0; i < paramterStack.size(); i++)
         {
             Serial.printf("%d ", paramterStack[i]);
         }

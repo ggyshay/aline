@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include <functional>
+#include "Arduino.h"
 #define debounceDelay 200
 class Button
 {
@@ -19,15 +20,9 @@ public:
 
     void setReading(bool reading)
     {
-        // if (reading != lastButtonState)
-        // {
-        //     lastDebounceTime = millis();
-        // }
 
         if (((millis() - lastDebounceTime) > debounceDelay) && reading != buttonState)
         {
-            // buttonState = reading;
-
             if (isReleaseSensitive)
             {
                 *value = reading;
@@ -52,6 +47,5 @@ public:
 
 private:
     bool buttonState = false;
-    // bool lastButtonState = false;
     unsigned long lastDebounceTime = 0;
 };

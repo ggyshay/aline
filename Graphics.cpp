@@ -16,7 +16,7 @@ void Graphics::blackLine()
     }
 }
 
-void Graphics::selectionLine(unsigned char s, unsigned char e, char dataLength)
+void Graphics::selectionLine(byte s, byte e, char dataLength)
 {
     int xScale = 16 * (1 + (dataLength - 1) / 16);
     int xDivisor = 128 / xScale;
@@ -91,7 +91,7 @@ void Graphics::plotGraph(unsigned const char *data, char dataLength, bool isThin
     unsigned long int scaled[64] = {};
     for (int i = 0; i < dataLength; ++i)
     {
-        unsigned char value = (data[i] - min) * 31 / (max - min);
+        byte value = (data[i] - min) * 31 / (max - min);
         scaled[i] = ((1 << 32) - 1) - ((1 << (32 - value - 1)) - 1);
     }
     for (int i = dataLength; i < 16; i++)
@@ -99,11 +99,11 @@ void Graphics::plotGraph(unsigned const char *data, char dataLength, bool isThin
         scaled[i] = 0;
     }
 
-    for (unsigned char page = 0; page < 4; page++)
+    for (byte page = 0; page < 4; page++)
     {
         for (byte col = 0; col < 128; ++col)
         {
-            unsigned char columnValue;
+            byte columnValue;
             if (isThin)
             {
                 columnValue = col % xDivisor == (xDivisor / 2) ? (scaled[col / xDivisor] & (0xFF << (8 * page))) >> (8 * page) : 0;
@@ -138,11 +138,11 @@ void Graphics::plotGraph(int *data, char dataLength, bool isThin)
         scaled[i] = 0;
     }
 
-    for (unsigned char page = 0; page < 4; page++)
+    for (byte page = 0; page < 4; page++)
     {
         for (byte col = 0; col < 128; ++col)
         {
-            unsigned char columnValue;
+            byte columnValue;
             if (isThin)
             {
                 columnValue = col % xDivisor == (xDivisor / 2) ? (scaled[col / xDivisor] & (0xFF << (8 * page))) >> (8 * page) : 0;
@@ -156,9 +156,8 @@ void Graphics::plotGraph(int *data, char dataLength, bool isThin)
     }
 }
 
-void Graphics::titlePlot(const char *str1, unsigned char *data, char dataLength, bool isThin, unsigned char selectionStart, unsigned char selectionEnd)
+void Graphics::titlePlot(const char *str1, byte *data, char dataLength, bool isThin, byte selectionStart, byte selectionEnd)
 {
-    // strcpy(nextStrings[0], str1);
     cursor = 0;
     writeLine(str1);
     blackLine();
@@ -166,9 +165,8 @@ void Graphics::titlePlot(const char *str1, unsigned char *data, char dataLength,
     selectionLine(selectionStart, selectionEnd, dataLength);
     disp.putScreen();
 }
-void Graphics::titlePlot(const char *str1, int *data, char dataLength, bool isThin, unsigned char selectionStart, unsigned char selectionEnd)
+void Graphics::titlePlot(const char *str1, int *data, char dataLength, bool isThin, byte selectionStart, byte selectionEnd)
 {
-    // strcpy(nextStrings[0], str1);
     cursor = 0;
     writeLine(str1);
     blackLine();
@@ -192,10 +190,9 @@ void Graphics::buildTwoStringScreen(const char *str1, const char *str2)
 void Graphics::writePrettyLine()
 {
     char circle[8] = {0xff, 0xc3, 0x99, 0xa5, 0xa5, 0x99, 0xc3, 0xff};
-    // char circle[8] = {0x3c, 0x42, 0x99, 0xa5, 0xa5, 0x99, 0x42, 0x3c};
-    for (unsigned char i = 0; i < 16; i++)
+    for (byte i = 0; i < 16; i++)
     {
-        for (unsigned char j = 0; j < 8; j++)
+        for (byte j = 0; j < 8; j++)
             disp.dataBuffer[cursor++] = circle[j];
     }
 }
@@ -205,13 +202,9 @@ void Graphics::buildSplash()
     cursor = 0;
     writePrettyLine();
     writePrettyLine();
-    // writePrettyLine();
     blackLine();
-    // writePrettyLine();
-    // writePrettyLine();
     writeLine("   ALINE   ");
     blackLine();
-    // writePrettyLine();
     writePrettyLine();
     writePrettyLine();
     disp.putScreen();
