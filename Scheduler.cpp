@@ -47,7 +47,7 @@ void Scheduler::registerTimeToNextEvent(unsigned long timeToNextEventMicros)
     }
     else
     {
-        Serial.printf("unlocking and setting next timeout of %dms\n", timeToNextEventMicros);
+        // Serial.printf("unlocking and setting next timeout of %dms\n", timeToNextEventMicros);
         internalClockTimer.begin(handleClockOuter, timeToNextEventMicros);
     }
 }
